@@ -21,15 +21,6 @@ CameraMotionController::CameraMotionController(FlirCamera& camera, OfficerLocato
     // By deafult, we did not find an officer.
     ResetSearchState();
     _isGuidingCameraMotion = false;
-
-    // Set the default angles/steps.
-    MotorConfig def;
-    def.angleBounds.min = -360;
-    def.angleBounds.max = 360;
-    def.stepBounds.min = -1000;
-    def.stepBounds.max = 1000;
-    PanConfig = def;
-    TiltConfig = def;
 }
 
 void CameraMotionController::ResetSearchState()
