@@ -25,12 +25,15 @@ Vector2* SmartOfficerLocator::GetDesiredOfficerLocation(ImagePtr image)
         OfficerInferenceBox curBox = boxes[i];
         
         // Determine how big the roi is.
+        Log("ROI: Top-Left = (" + to_string(curBox.topLeftX) + ", " + to_string(curBox.topLeftY) + ") Bottom-Right = (" + to_string(curBox.bottomRightX) + ", " + to_string(curBox.bottomRightY) + ")", OpenCV);
         Size roiSize(curBox.bottomRightX - curBox.topLeftX, curBox.bottomRightY - curBox.topLeftY);
         
+        Log("Creating ROI matrix", OpenCV);
         Mat roi(roiSize, CV_8UC3);
+        Log("ROI matrix created", OpenCV);
 
         // This places just the bounding box in a seperate mat.
-        m(Rect(Point(curBox.topLeftX, curBox.topLeftY), Point(curBox.bottomRightX, curBox.bottomRightY))).copyTo(roi(Rect(Point(0, 0), roiSize)));
+        m(Rect(Point(curBox.topLeftX, curBox.topLeftY), roiSize)).copyTo(roi(Rect(Point(0, 0), roiSize)));
 
         // Now we gotta convert this guy to HSV.
         cvtColor(roi, roi, COLOR_RGB2HSV);
@@ -56,9 +59,9 @@ Vector2* SmartOfficerLocator::GetDesiredOfficerLocation(ImagePtr image)
             }
         }
 
-        float thresholdProp = numInThreshold / (float)(total);
+        float thresholdProp = total != 0 ? numInThreshold / (float)(total) : 0;
         Log("Officer threshold value of " + to_string(thresholdProp), Officers);
-        if(thresholdProp >= 0.15)
+        if(thresholdProp >= OfficerThreshold)
         {
             // This box has enough of the color. Now let's compare it.
             if(!bestBox || boxes[i].confidence > bestBox->confidence)
