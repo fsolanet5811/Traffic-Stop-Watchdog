@@ -6,22 +6,8 @@ using namespace std;
 int main()
 {
     FlirCamera camera;
-
-    while(true)
-    {
-        cout << "Scanning available cameras..." << endl;
-
-        vector<string> serials = camera.FindDevices();
-
-        cout << "Found " << serials.size() << " cameras." << endl;
-
-        for(int i = 0; i < serials.size(); i++)
-        {
-            cout << serials[i] << endl;
-        }
-        
-        sleep(2);
-    }
-
-    return 0;
+    string serial = "20386745";
+    cout << "Connecting to camera " << serial << endl;
+    camera.Connect(serial);
+    cout << "Connected" << endl;
 }
