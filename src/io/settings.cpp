@@ -1,11 +1,11 @@
 #include "io.hpp"
-#include "json.h"
+//#include "json.h"
 #include <string>
 #include <fstream>
 #include <streambuf>
 
 using namespace tsw::io;
-using namespace Json;
+//using namespace Json;
 using namespace std;
 
 void Settings::Load(string fileName)
