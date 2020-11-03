@@ -26,7 +26,7 @@ vector<string> FlirCamera::FindDevices()
     vector<string> serials;
     for(int i = 0; i < cameras.GetSize(); i++)
     {
-        serials.push_back((string)cameras.GetByIndex(i)->DeviceID.GetValue().c_str());
+        serials.push_back((string)cameras.GetByIndex(i)->DeviceID.GetValue());
     }
 
     return serials;
