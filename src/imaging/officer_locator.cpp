@@ -14,7 +14,7 @@ OfficerDirection OfficerLocator::FindOfficer(ImagePtr image)
     OfficerDirection res;
 
     // Determine where on the image the officer is.
-    Point* officerLoc = GetDesiredOfficerLocation(image);
+    Vector2* officerLoc = GetDesiredOfficerLocation(image);
 
     if(!officerLoc)
     {
@@ -77,7 +77,7 @@ vector<InferenceBoundingBox> OfficerLocator::GetOfficerLocations(ImagePtr image)
     return boxes;
 }
 
-OfficerLocator::RegionLocation OfficerLocator::GetRegionLocation(Point location, ImagePtr image)
+OfficerLocator::RegionLocation OfficerLocator::GetRegionLocation(Vector2 location, ImagePtr image)
 {
     if(IsPointInRegion(location, TargetRegionProportion, image))
     {
@@ -93,7 +93,7 @@ OfficerLocator::RegionLocation OfficerLocator::GetRegionLocation(Point location,
     return None;
 }
 
-bool OfficerLocator::IsPointInRegion(Point location, Point region, ImagePtr image)
+bool OfficerLocator::IsPointInRegion(Vector2 location, Vector2 region, ImagePtr image)
 {
     double regionLeft = (0.5 - region.x / 2) * image->GetWidth();
     if(location.x > regionLeft)

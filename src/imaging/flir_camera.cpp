@@ -17,6 +17,7 @@ FlirCamera::FlirCamera()
 {
     _system = System::GetInstance();  
     _nextLiveFeedKey = 1;
+    _isLiveFeedOn = false;
 }
 
 vector<string> FlirCamera::FindDevices()
@@ -61,6 +62,16 @@ double FlirCamera::GetDeviceTemperature()
 double FlirCamera::GetFrameRate()
 {
     return _camera->AcquisitionResultingFrameRate.GetValue();
+}
+
+int FlirCamera::GetFrameHeight()
+{
+    return _camera->Height.GetValue();
+}
+
+int FlirCamera::GetFrameWidth()
+{
+    return _camera->Width.GetValue();
 }
 
 void FlirCamera::SetFrameRate(double hertz)
@@ -148,11 +159,10 @@ void FlirCamera::RunLiveFeed()
     {
         // Grab an image from the camera
         ImagePtr image = _camera->GetNextImage();
-        ChunkData data = image->GetChunkData();
         
         // Convert the image so that we can free up the camera buffer for the next frame.
         ImagePtr convertedImage = image->Convert(PixelFormat_RGB8);
-
+        
         // Free up the image from the camera buffer.
         image->Release();
 
@@ -162,4 +172,19 @@ void FlirCamera::RunLiveFeed()
 
     // Stop grabbing frames from the camera.
     _camera->EndAcquisition();
+}
+
+ImagePtr FlirCamera::CaptureImage()
+{
+    if(IsLiveFeedOn())
+    {
+        throw runtime_error("Cannot capture single image while live feed is on.");
+    }
+
+    _camera->BeginAcquisition();
+    ImagePtr image = _camera->GetNextImage();
+    ImagePtr convertedImage = image->Convert(PixelFormat_RGB8);
+    image->Release();
+    _camera->EndAcquisition();
+    return convertedImage; 
 }

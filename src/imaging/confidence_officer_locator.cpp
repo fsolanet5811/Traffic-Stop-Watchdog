@@ -5,7 +5,7 @@ using namespace Spinnaker;
 
 ConfidenceOfficerLocator::ConfidenceOfficerLocator(int16_t officerClassId) : OfficerLocator(officerClassId) { }
 
-Point* ConfidenceOfficerLocator::GetDesiredOfficerLocation(ImagePtr image)
+Vector2* ConfidenceOfficerLocator::GetDesiredOfficerLocation(ImagePtr image)
 {
     // Grab all the bounding boxes.
     vector<InferenceBoundingBox> boxes = GetOfficerLocations(image);
@@ -26,7 +26,7 @@ Point* ConfidenceOfficerLocator::GetDesiredOfficerLocation(ImagePtr image)
         return NULL;
     }
 
-    Point* p = new Point();
+    Vector2* p = new Vector2();
     p->x = (bestBox->rect.topLeftXCoord + bestBox->rect.bottomRightXCoord) / 2.0;
     p->y = (bestBox->rect.topLeftYCoord + bestBox->rect.bottomRightYCoord) / 2.0;
     return p;

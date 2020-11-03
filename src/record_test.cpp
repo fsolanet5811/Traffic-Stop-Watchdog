@@ -10,6 +10,15 @@ int main()
     camera.Connect(serial);
     cout << "Connected" << endl;
 
+    ImagePtr image = camera.CaptureImage();
+    unsigned char* data = (unsigned char*)image->GetData();
+    for(int i = 0; i < image->GetImageSize(); i++)
+    {
+        cout << data[i] << endl;
+    }
+
+
+    
     cout << "Creating recorder" << endl;
 
     Recorder r(camera);

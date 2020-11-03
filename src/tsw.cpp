@@ -11,26 +11,22 @@ void OnLiveFeedImageReceived(LiveFeedCallbackArgs args)
 
 int main()
 {
-    string serialNumber = "20386745";
-    
     FlirCamera camera;
-    camera.Connect(serialNumber);
+    string serial = "20386745";
+    cout << "Connecting to camera " << serial << endl;
+    camera.Connect(serial);
+    cout << "Connected" << endl;
 
-    cout << camera.GetDeviceTemperature() << endl;
-    cout << to_string(camera.GetFrameRate()) << endl;
-    camera.SetFrameRate(30);
-
-    //camera.RegisterLiveFeedCallback(OnLiveFeedImageReceived);
-    //camera.UnregisterLiveFeedCallback(OnLiveFeedImageReceived);
-
-    Recorder rec(camera);
+    Recorder r(camera);
+    r.StartRecording("test.avi");
     camera.StartLiveFeed();
 
-    rec.StartRecording("my_video");
+    sleep(5);
 
-    this_thread::sleep_for(chrono::seconds(5));
-    rec.StopRecording();
+    r.StopRecording();
     camera.StopLiveFeed();
-
+    
     return 0;
+    
+    
 }
