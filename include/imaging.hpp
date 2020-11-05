@@ -47,6 +47,8 @@ namespace tsw::imaging
         double GetFrameRate();
         int GetFrameHeight();
         int GetFrameWidth();
+        void SetFrameHeight(int frameHeight);
+        void SetFrameWidth(int frameWidth);
         void SetFrameRate(double hertz);
         void StartLiveFeed();
         void StopLiveFeed();
