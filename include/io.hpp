@@ -16,7 +16,7 @@ namespace tsw::io
         void Open(string devicePath);
         int Read(unsigned char* buffer, int bytesToRead);
         int Write(unsigned char* data, int bytesToWrite);
-
+        void Close();
     private:
         int _port;
         mutex _portKey;
@@ -28,10 +28,10 @@ namespace tsw::io
         Motors = 1
     };
 
-    struct DeviceByte
+    struct DeviceMessage
     {
         Device device;
-        unsigned char value;
+        vector<uchar> bytes;
     };
 
     class DeviceSerialPort
@@ -41,14 +41,16 @@ namespace tsw::io
         void StartGathering();
         void StopGathering();
         bool IsGathering();
-        vector<unsigned char> ReadFromDevice(Device device, int numBytes);
-        void WriteToDevice(Device device, vector<unsigned char> data);
+        DeviceMessage ReadFromDevice(Device device);
+        void WriteToDevice(Device device, vector<uchar> data);
+        void WriteToDevice(vector<uchar> formattedData);
+        void WriteToDevice(uchar formattedByte);
 
     private:
         bool _isGathering;
         future<void> _gatherFuture;
         SerialPort* _port;
-        vector<DeviceByte> _buffer;
+        vector<DeviceMessage> _buffer;
         mutex _bufferKey;
         void Gather();
     };
@@ -56,7 +58,7 @@ namespace tsw::io
     class CameraMotionController
     {
     public:
-        CameraMotionController(FlirCamera& camera, OfficerLocator& officerLocator);
+        CameraMotionController(FlirCamera& camera, OfficerLocator& officerLocator, DeviceSerialPort& commandPort);
         double VerticalFov;
         double HorizontalFov;
         uint CameraFramesToSkip;
@@ -67,40 +69,51 @@ namespace tsw::io
     private:
         FlirCamera* _camera;
         OfficerLocator* _officerLocator;
+        DeviceSerialPort* _commandPort;
         bool _isGuidingCameraMotion;
         uint _cameraLivefeedCallbackKey;
         void OnLivefeedImageReceived(LiveFeedCallbackArgs args);
+        static int AngleToMotorValue(double angle);
     };
 
     enum CommandAction
     {
         StartOfficerTracking = 0,
         StopOfficerTracking = 1,
-        SendKeyword = 2
+        SendKeyword = 2,
+        RelativeMoveSynchronous = 3,
+        RelativeMoveAsynchronous = 4,
+        AbsoluteMoveSynchronous = 5,
+        AbsoluteMoveAsynchronous = 6,
     };
 
     struct Command
     {
         CommandAction action;
-        unsigned char* argBytes;
-        int numArgBytes;
+        vector<unsigned char> args;
     };
 
     class CommandAgent
     {
     public:
-        CommandAgent(SerialPort& commandPort);
-        Command* ReadCommand();
-        static void DeleteCommand(Command* command);
+        CommandAgent(DeviceSerialPort& commandPort);
+        Command* ReadCommand(Device device);
+        vector<unsigned char> ReadResponse(Device device);
+        void SendCommand(Device device, Command* command);
+        void AcknowledgeReceived(Device device);
 
     private:
-        SerialPort* _commandPort;
+        DeviceSerialPort* _commandPort;
     };
 
     class Settings
     {
     public:
+        Settings();
+        Settings(string settingsFile);
         string DeviceSerialPath;
+        string CameraSerialNumber;
+        short OfficerClassId;
         void Load(string settingsFile);
     };
 }

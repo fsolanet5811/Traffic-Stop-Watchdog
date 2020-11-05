@@ -30,6 +30,11 @@ void DeviceSerialPort::StartGathering()
 
 void DeviceSerialPort::Gather()
 {
+    // We need to keep track of which device we are reading from.
+    Device currentDevice;
+    int bytesForCurrent = 0;
+    vector<uchar> currentMessage;
+
     while(IsGathering())
     {
         // Get a byte from the port.
@@ -40,67 +45,87 @@ void DeviceSerialPort::Gather()
         if(read)
         {
             // Determine where this byte came from.
-            Device dev = (Device)(b[0] >> 7);
+            if(!bytesForCurrent)
+            {
+                currentDevice = (Device)(b[0] >> 7);
+
+                // Bits 4-6 will tell us how many extra bytes are coming from this device.
+                bytesForCurrent = 1 + ((int)b & 0b01110000) >> 4;
+            }
+            
 
             // Add this byte to the list.
-            DeviceByte db;
-            db.value = b[0];
-            db.device = dev;
-            _bufferKey.lock();
-            _buffer.push_back(db);
-            _bufferKey.unlock();
+            currentMessage.push_back(b[0]);
+            bytesForCurrent--;
+            
+            // See if we reached the end of the message.
+            if(!bytesForCurrent)
+            {
+                // Add this message to the buffer.
+                DeviceMessage message;
+                message.device = currentDevice;
+                message.bytes = currentMessage;
 
+                _bufferKey.lock();
+                _buffer.push_back(message);
+                _bufferKey.unlock();
+
+                currentMessage = vector<uchar>();
+            }
+            
             // We are not sleeping here because if we have nothing to read, then the read will act as a small sleep.
             // Plus, if we slep after every byte, it will take a while to read things.
         }
     }
 }
 
-vector<unsigned char> DeviceSerialPort::ReadFromDevice(Device device, int numBytes)
+DeviceMessage DeviceSerialPort::ReadFromDevice(Device device)
 {
-    // The goal is to block until we get all the bytes we need.
-    vector<unsigned char> bytes;
-    
-    while(bytes.size() < numBytes)
+    // The goal is to block until we get the message from the device we need.
+    while(true)
     {
         // Get a hold of the list of bytes.
         _bufferKey.lock();
-        for(int i = 0; i < _buffer.size() && bytes.size() < numBytes; i++)
+        for(int i = 0; i < _buffer.size(); i++)
         {
             // Only grab the byte if it is from the device we want.
             if(_buffer[i].device == device)
             {
-                // Put this byte in our list and remove it from the overall buffer.
-                bytes.push_back(_buffer[i].value);
-                _buffer.erase(_buffer.begin() + i--);
+                // We can return this message once we remove it from the list and unlock the buffer.
+                DeviceMessage found = _buffer[i];
+                _buffer.erase(_buffer.begin() + i);
+                _bufferKey.unlock();
+                return found;
             }
         }
 
-        // Let other people use the list.
-        _bufferKey.unlock();
-
-        // Wait a bit before reading again, but only if we aren't full.
-        if(bytes.size() < numBytes)
-        {
-            usleep(100000);
-        }
+        // Wait a bit before reading again.
+        usleep(100000);
     }
-
-    // At this point, we have read all of the bytes and can return them.
-    return bytes;
 }
 
-void DeviceSerialPort::WriteToDevice(Device device, vector<unsigned char> data)
+void DeviceSerialPort::WriteToDevice(vector<uchar> formattedData)
 {
-    // We have to put the device as the MSB.
-    unsigned char* dataWithDevice = new unsigned char[data.size()];
-    for(int i = 0; i < data.size(); i++)
+    _port->Write(formattedData.data(), formattedData.size());
+}
+
+void DeviceSerialPort::WriteToDevice(Device device, vector<uchar> data)
+{
+    // Because we only have 3 bits for extra byte count, we cannot have more than 7 bytes.
+    if(data.size() > 7)
     {
-        unsigned char dataByte = (unsigned char)device << 7;
-        dataByte |= data[i] & 0x80;
-        dataWithDevice[i] = dataByte;
+        throw runtime_error("Cannot send more than 7 bytes as arguments to device.");
     }
 
-    // Now the bytes are ready to send to through serial to the device.
-    _port->Write(dataWithDevice, data.size());
+    // Create the header byte and put it in the beginning.
+    uchar header = ((uchar)device << 7) | data.size() << 4;
+    data.insert(data.begin(), header);
+    WriteToDevice(data);
+}
+
+void DeviceSerialPort::WriteToDevice(uchar formattedByte)
+{
+    vector<uchar> bytes(1);
+    bytes[0] = formattedByte;
+    WriteToDevice(bytes);
 }

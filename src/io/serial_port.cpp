@@ -17,7 +17,7 @@ void SerialPort::Open(string devicePath)
 {
     // Attempt to connect to the device.
     int res = open(devicePath.c_str(), O_RDWR);
-    
+
     // See if we made a successful connection.
     if(res == -1)
     {
@@ -100,4 +100,9 @@ int SerialPort::Write(unsigned char* data, int bytesToWrite)
     }
 
     return bytesWritten;
+}
+
+void SerialPort::Close()
+{
+    close(_port);
 }

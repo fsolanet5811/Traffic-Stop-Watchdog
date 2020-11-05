@@ -2,18 +2,18 @@
 
 #include "Spinnaker.h"
 #include "SpinGenApi/SpinnakerGenApi.h"
-#include "SpinVideo.h"
+#include "opencv.hpp"
 #include <string>
 #include <future>
 
 using namespace std;
 using namespace Spinnaker;
 using namespace Spinnaker::GenApi;
-using namespace Spinnaker::Video;
+using namespace cv;
 
 namespace tsw::imaging
 {
-    struct Point
+    struct Vector2
     {
         double x;
         double y;
@@ -22,7 +22,7 @@ namespace tsw::imaging
     struct OfficerDirection
     {
         bool foundOfficer;
-        Point movement;
+        Vector2 movement;
     };
 
     struct LiveFeedCallbackArgs
@@ -45,12 +45,15 @@ namespace tsw::imaging
         void Connect(string serialNumber);
         double GetDeviceTemperature();
         double GetFrameRate();
+        int GetFrameHeight();
+        int GetFrameWidth();
         void SetFrameRate(double hertz);
         void StartLiveFeed();
         void StopLiveFeed();
         bool IsLiveFeedOn();
         uint RegisterLiveFeedCallback(function<void(LiveFeedCallbackArgs)> callback);
         void UnregisterLiveFeedCallback(uint callbackKey);
+        ImagePtr CaptureImage();
 
     private:
         SystemPtr _system;
@@ -79,24 +82,25 @@ namespace tsw::imaging
         bool _isRecording;
         string _recordedFileName;
         uint _callbackKey;
-        SpinVideo _recordedVideo;
+        VideoWriter _aviWriter;
 
         void Record();
         void OnLiveFeedImageReceived(LiveFeedCallbackArgs args);
+        Mat MatFromImage(ImagePtr image);
     };
 
     class OfficerLocator
     {
     public:
         int16_t OfficerClassId;
-        Point TargetRegionProportion;
-        Point SafeRegionProportion;
+        Vector2 TargetRegionProportion;
+        Vector2 SafeRegionProportion;
         OfficerDirection FindOfficer(ImagePtr image);
 
     protected:
         OfficerLocator(int16_t officerClassId);
         vector<InferenceBoundingBox> GetOfficerLocations(ImagePtr image);
-        virtual Point* GetDesiredOfficerLocation(ImagePtr image) = 0;    
+        virtual Vector2* GetDesiredOfficerLocation(ImagePtr image) = 0;    
 
     private:
         enum RegionLocation
@@ -107,8 +111,8 @@ namespace tsw::imaging
         };
         bool _isTravelingToTarget;
         RegionLocation _lastLocation;
-        RegionLocation GetRegionLocation(Point location, ImagePtr image);
-        static bool IsPointInRegion(Point location, Point region, ImagePtr image);
+        RegionLocation GetRegionLocation(Vector2 location, ImagePtr image);
+        static bool IsPointInRegion(Vector2 location, Vector2 region, ImagePtr image);
     };
 
     class ConfidenceOfficerLocator : public OfficerLocator
@@ -117,6 +121,6 @@ namespace tsw::imaging
         ConfidenceOfficerLocator(int16_t OfficerClassId);
 
     protected:
-        Point* GetDesiredOfficerLocation(ImagePtr image);
+        Vector2* GetDesiredOfficerLocation(ImagePtr image);
     };
 }

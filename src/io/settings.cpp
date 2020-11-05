@@ -1,20 +1,26 @@
 #include "io.hpp"
-//#include "json.h"
 #include <string>
 #include <fstream>
 #include <streambuf>
 
 using namespace tsw::io;
-//using namespace Json;
 using namespace std;
 
-void Settings::Load(string fileName)
+Settings::Settings()
+{
+
+}
+
+Settings::Settings(string settingsFile)
+{
+    Load(settingsFile);
+}
+
+void Settings::Load(string settingsFile)
 {
     // Parse the json text.
-    //ifstream t(fileName);
-    //Reader reader;
-    //Value root;
-    //reader.parse(t, root);
-
-    //DeviceSerialPath = root["DeviceSerialPath"].asString();
+    ifstream sf(settingsFile, ifstream::binary);
+    getline(sf, DeviceSerialPath);
+    getline(sf, CameraSerialNumber);
+    sf.close();
 }
