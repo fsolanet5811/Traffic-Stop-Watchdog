@@ -27,7 +27,8 @@ void Recorder::StartRecording(string fileName)
         Size frameSize;
         frameSize.height = _camera->GetFrameHeight();
         frameSize.width = _camera->GetFrameWidth();
-        if(!_aviWriter.open(_recordedFileName, 0, _camera->GetFrameRate(), frameSize))
+        int cc = VideoWriter::fourcc('M', 'J', 'P', 'G');
+        if(!_aviWriter.open(_recordedFileName, cc, _camera->GetFrameRate(), frameSize))
         {
             throw runtime_error("Video could not be initialized.");
         }
