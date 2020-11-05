@@ -15,7 +15,7 @@ int main()
     Recorder r(camera);
 
     cout << "Starting record" << endl;
-    r.StartRecording("test.avi");
+    r.StartRecording("1test.avi");
 
     cout << "Starting live feed" << endl;
     camera.StartLiveFeed();
