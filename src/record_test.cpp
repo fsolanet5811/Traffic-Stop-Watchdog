@@ -10,6 +10,8 @@ int main()
     camera.Connect(serial);
     cout << "Connected" << endl;
     
+    cout << "FPS: " << camera.GetFrameRate();
+
     cout << "Creating recorder" << endl;
 
     Recorder r(camera);

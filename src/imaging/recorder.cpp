@@ -56,6 +56,7 @@ void Recorder::OnLiveFeedImageReceived(LiveFeedCallbackArgs args)
 {
     // Add this image frame to our video.
     _aviWriter.write(MatFromImage(args.image));
+    cout << "Frame Recorded" << endl;
 }
 
 Mat Recorder::MatFromImage(ImagePtr image)
