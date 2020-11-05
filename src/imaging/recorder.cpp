@@ -27,7 +27,10 @@ void Recorder::StartRecording(string fileName)
         Size frameSize;
         frameSize.height = _camera->GetFrameHeight();
         frameSize.width = _camera->GetFrameWidth();
-        _aviWriter.open(_recordedFileName, 0, _camera->GetFrameRate(), frameSize);
+        if(!_aviWriter.open(_recordedFileName, 0, _camera->GetFrameRate(), frameSize))
+        {
+            throw runtime_error("Video could not be initialized.");
+        }
 
         // Listen for when the camera gets frames.
         _callbackKey = _camera->RegisterLiveFeedCallback(bind(&Recorder::OnLiveFeedImageReceived, this, placeholders::_1));
