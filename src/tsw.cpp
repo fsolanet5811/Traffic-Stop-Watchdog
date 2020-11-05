@@ -5,10 +5,12 @@
 using namespace tsw::imaging;
 using namespace tsw::io;
 
-int main()
+int main(int argc, char* argv[])
 {
     // Initialize the settings.
-    string settingsFile = "tsw.config";
+    string thisFile(argv[0]);
+    string startingDir = thisFile.substr(0, startingDir.find_last_of('/'));
+    string settingsFile = startingDir + "/tsw.config";
     cout << "Loading settings from " << settingsFile << endl;
     Settings settings("tsw.config");
     cout << "Settings loaded" << endl;

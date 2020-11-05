@@ -22,5 +22,8 @@ void Settings::Load(string settingsFile)
     ifstream sf(settingsFile, ifstream::binary);
     getline(sf, DeviceSerialPath);
     getline(sf, CameraSerialNumber);
+    string officerClassId;
+    getline(sf, officerClassId);
+    OfficerClassId = stoi(officerClassId);
     sf.close();
 }

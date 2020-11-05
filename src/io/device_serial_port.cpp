@@ -28,6 +28,15 @@ void DeviceSerialPort::StartGathering()
     }
 }
 
+void DeviceSerialPort::StopGathering()
+{
+    if(IsGathering())
+    {
+        _isGathering = false;
+        _gatherFuture.wait();
+    }
+}
+
 void DeviceSerialPort::Gather()
 {
     // We need to keep track of which device we are reading from.
@@ -50,7 +59,7 @@ void DeviceSerialPort::Gather()
                 currentDevice = (Device)(b[0] >> 7);
 
                 // Bits 4-6 will tell us how many extra bytes are coming from this device.
-                bytesForCurrent = 1 + ((int)b & 0b01110000) >> 4;
+                bytesForCurrent = 1 + ((int)b[0] & 0b01110000) >> 4;
             }
             
 

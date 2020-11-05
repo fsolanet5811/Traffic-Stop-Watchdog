@@ -188,3 +188,13 @@ ImagePtr FlirCamera::CaptureImage()
     _camera->EndAcquisition();
     return convertedImage; 
 }
+
+void FlirCamera::SetFrameHeight(int frameHeight)
+{
+    _camera->Height.SetValue(frameHeight);
+}
+
+void FlirCamera::SetFrameWidth(int frameWidth)
+{
+    _camera->Width.SetValue(frameWidth);
+}
