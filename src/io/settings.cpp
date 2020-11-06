@@ -14,6 +14,7 @@ Settings::Settings()
 Settings::Settings(string settingsFile)
 {
     Load(settingsFile);
+    
 }
 
 void Settings::Load(string settingsFile)
