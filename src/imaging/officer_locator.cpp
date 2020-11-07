@@ -36,13 +36,16 @@ OfficerDirection OfficerLocator::FindOfficer(ImagePtr image)
     {
         // We have to reset the flag that indicates we are attempting to move to the target, otherwise the officer will move to target once it hits the safe region.
         _isTravelingToTarget = false;
-        return res;
+        res.shouldMove = false;
     }
-
-    // Now we actually have to do some work.
-    // The goal is to get the officer to the center of the image.
-    _isTravelingToTarget = true;
-
+    else
+    {
+        // Now we actually have to do some work.
+        // The goal is to get the officer to the center of the image.
+        _isTravelingToTarget = true;
+        res.shouldMove = true;
+    }
+    
     // First transform the location of the officer into [-1, 1] space (from left to right).
     // Keep in mind that we have to reverse the y axis.
     officerLoc->x = officerLoc->x / (image->GetWidth() / 2) - 1;

@@ -22,6 +22,7 @@ namespace tsw::imaging
     struct OfficerDirection
     {
         bool foundOfficer;
+        bool shouldMove;
         Vector2 movement;
     };
 

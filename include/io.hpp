@@ -45,6 +45,7 @@ namespace tsw::io
         void WriteToDevice(Device device, vector<uchar> data);
         void WriteToDevice(vector<uchar> formattedData);
         void WriteToDevice(uchar formattedByte);
+        bool TryReadFromDevice(Device device, DeviceMessage* readMessage);
 
     private:
         bool _isGathering;
@@ -61,17 +62,36 @@ namespace tsw::io
         CameraMotionController(FlirCamera& camera, OfficerLocator& officerLocator, DeviceSerialPort& commandPort);
         double VerticalFov;
         double HorizontalFov;
+        Vector2 HomeAngles;
         uint CameraFramesToSkip;
         void StartCameraMotionGuidance();
         void StopCameraMotionGuidance();
         bool IsGuidingCameraMotion();
+        void OfficerSearch();
+        void GoToHome();
+        void SendSyncRelativeMoveCommand(double horizontal, double vertical);
+        void SendAsyncRelativeMoveCommand(double horizontal, double vertical);
+        void SendSyncAbsoluteMoveCommand(double horizontal, double vertical);
+        void SendAsyncAbsoluteMoveCommand(double horizontal, double vertical);
+        static int GetMaxValue();
 
     private:
+        enum OfficerSearchState
+        {
+            NotSearching = 0,
+            CheckingLastSeen = 1,
+            MovingToHomePosition = 2,
+            Circling = 3
+        };
         FlirCamera* _camera;
         OfficerLocator* _officerLocator;
         DeviceSerialPort* _commandPort;
         bool _isGuidingCameraMotion;
         uint _cameraLivefeedCallbackKey;
+        OfficerSearchState _searchState;
+        OfficerDirection _lastSeen;
+        void SendMoveCommand(uchar specifierByte, double horizontal, double vertical);
+        void CheckLastSeen();
         void OnLivefeedImageReceived(LiveFeedCallbackArgs args);
         static int AngleToMotorValue(double angle);
     };
@@ -98,7 +118,10 @@ namespace tsw::io
     public:
         CommandAgent(DeviceSerialPort& commandPort);
         Command* ReadCommand(Device device);
-        vector<unsigned char> ReadResponse(Device device);
+        vector<uchar> ReadResponse(Device device);
+        bool TryReadResponse(Device device, vector<uchar>* readResponse);
+        void SendResponse(vector<uchar> formattedResponse);
+        void SendResponse(uchar formattedResponse);
         void SendCommand(Device device, Command* command);
         void AcknowledgeReceived(Device device);
 

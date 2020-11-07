@@ -91,21 +91,14 @@ void DeviceSerialPort::Gather()
 DeviceMessage DeviceSerialPort::ReadFromDevice(Device device)
 {
     // The goal is to block until we get the message from the device we need.
+    DeviceMessage message;
     while(true)
     {
-        // Get a hold of the list of bytes.
-        _bufferKey.lock();
-        for(int i = 0; i < _buffer.size(); i++)
+        // Try to read from the device.
+        if(TryReadFromDevice(device, &message))
         {
-            // Only grab the byte if it is from the device we want.
-            if(_buffer[i].device == device)
-            {
-                // We can return this message once we remove it from the list and unlock the buffer.
-                DeviceMessage found = _buffer[i];
-                _buffer.erase(_buffer.begin() + i);
-                _bufferKey.unlock();
-                return found;
-            }
+            // We successfully read.
+            return message;
         }
 
         // Wait a bit before reading again.
@@ -137,4 +130,27 @@ void DeviceSerialPort::WriteToDevice(uchar formattedByte)
     vector<uchar> bytes(1);
     bytes[0] = formattedByte;
     WriteToDevice(bytes);
+}
+
+bool DeviceSerialPort::TryReadFromDevice(Device device, DeviceMessage* readMessage)
+{
+    // Get a hold of the list of bytes.
+    _bufferKey.lock();
+    for(int i = 0; i < _buffer.size(); i++)
+    {
+        // Only grab the byte if it is from the device we want.
+        if(_buffer[i].device == device)
+        {
+            // We can return this message once we remove it from the list and unlock the buffer.
+            DeviceMessage found = _buffer[i];
+            _buffer.erase(_buffer.begin() + i);
+            _bufferKey.unlock();
+            *readMessage = found;
+            return true;
+        }
+    }
+
+    // Release the list.
+    _bufferKey.unlock();
+    return false;
 }

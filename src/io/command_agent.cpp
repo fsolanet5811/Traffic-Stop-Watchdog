@@ -50,3 +50,43 @@ void CommandAgent::AcknowledgeReceived(Device device)
     uchar ack = ((uchar)device << 7) | 0x0f;
     _commandPort->WriteToDevice(ack);
 }
+
+void CommandAgent::SendResponse(vector<uchar> formattedResponse)
+{
+    _commandPort->WriteToDevice(formattedResponse);
+}
+
+void CommandAgent::SendResponse(uchar formattedResponse)
+{
+    _commandPort->WriteToDevice(formattedResponse);
+}
+
+vector<uchar> CommandAgent::ReadResponse(Device device)
+{
+    vector<uchar> response;
+    while(true)
+    {
+        if(TryReadResponse(device, &response))
+        {
+            // A response was read. Return it.
+            return response;
+        }
+
+        // Sleep a bit before trying again.
+        usleep(100000);
+    }
+}
+
+bool CommandAgent::TryReadResponse(Device device, vector<uchar>* readResponse)
+{
+    DeviceMessage message;
+    if(_commandPort->TryReadFromDevice(device, &message))
+    {
+        /// We read a response. Give them a reference to the bytes.
+        *readResponse = message.bytes;
+        return true;
+    }
+
+    // No response found.
+    return false;
+}
