@@ -2,10 +2,13 @@
 
 #include "Spinnaker.h"
 #include "imaging.hpp"
+#include "json.h"
 #include <future>
 
 using namespace Spinnaker;
 using namespace tsw::imaging;
+using namespace std;
+using namespace Json;
 
 namespace tsw::io
 {
@@ -98,13 +101,14 @@ namespace tsw::io
 
     enum CommandAction
     {
-        StartOfficerTracking = 0,
-        StopOfficerTracking = 1,
-        SendKeyword = 2,
-        RelativeMoveSynchronous = 3,
-        RelativeMoveAsynchronous = 4,
-        AbsoluteMoveSynchronous = 5,
-        AbsoluteMoveAsynchronous = 6,
+        Ping = 1,
+        StartOfficerTracking = 2,
+        StopOfficerTracking = 3,
+        SendKeyword = 4,
+        RelativeMoveSynchronous = 5,
+        RelativeMoveAsynchronous = 6,
+        AbsoluteMoveSynchronous = 7,
+        AbsoluteMoveAsynchronous = 8,
     };
 
     struct Command
@@ -137,6 +141,12 @@ namespace tsw::io
         string DeviceSerialPath;
         string CameraSerialNumber;
         short OfficerClassId;
+        Vector2 TargetRegionProportion;
+        Vector2 SafeRegionProportion;
+        int CameraFramesToSkipMoving;
         void Load(string settingsFile);
+
+    private:
+        static Vector2 ReadVector2(Value jsonVector);
     };
 }

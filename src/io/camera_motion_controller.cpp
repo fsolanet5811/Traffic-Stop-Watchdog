@@ -10,6 +10,9 @@ CameraMotionController::CameraMotionController(FlirCamera& camera, OfficerLocato
     _camera = &camera;
     _officerLocator = &officerLocator;
     _commandPort = &commandPort;
+    CameraFramesToSkip = 0;
+    HomeAngles.x = 0;
+    HomeAngles.y = 0;
 
     // These are the values for the firefly dl.
     HorizontalFov = 44.8;
@@ -17,6 +20,7 @@ CameraMotionController::CameraMotionController(FlirCamera& camera, OfficerLocato
 
     // By deafult, we did not find an officer.
     _lastSeen.foundOfficer = false;
+    _searchState = NotSearching;
 }
 
 void CameraMotionController::StartCameraMotionGuidance()
@@ -53,12 +57,13 @@ void CameraMotionController::SendMoveCommand(uchar specifierByte, double horizon
     bytes[0] = specifierByte;
     for(int i = 0; i < 3; i++)
     {
-        bytes[3 - i] = horizontalMotor >> (i * 8);
-        bytes[6 - i] = verticalMotor >> (i * 8);
+        bytes[3 - i] = (horizontalMotor >> (i * 8)) & 0xff;
+        bytes[6 - i] = (verticalMotor >> (i * 8)) & 0xff;
     }
 
     // Now we can send the command to the motor.
     // This is an asynchronous move since we don't really need to know when the motor has moved.
+    cout << "MOVE\tH:  " << horizontal << "\tV:  " << vertical << endl;
     _commandPort->WriteToDevice(Motors, bytes);
 
     // Wait for the acknowledge (not the same as a synch response).
@@ -197,22 +202,22 @@ void CameraMotionController::CheckLastSeen()
 
 void CameraMotionController::SendAsyncRelativeMoveCommand(double horizontal, double vertical)
 {
-    SendMoveCommand(0xc6, horizontal, vertical);
+    SendMoveCommand(0xe6, horizontal, vertical);
 }
 
 void CameraMotionController::SendSyncRelativeMoveCommand(double horizontal, double vertical)
 {
-    SendMoveCommand(0xc5, horizontal, vertical);
+    SendMoveCommand(0xe5, horizontal, vertical);
 }
 
 void CameraMotionController::SendAsyncAbsoluteMoveCommand(double horizontal, double vertical)
 {
-    SendMoveCommand(0xc8, horizontal, vertical);
+    SendMoveCommand(0xe8, horizontal, vertical);
 }
 
 void CameraMotionController::SendSyncAbsoluteMoveCommand(double horizontal, double vertical)
 {
-    SendMoveCommand(0xc7, horizontal, vertical);
+    SendMoveCommand(0xe7, horizontal, vertical);
 }
 
 void CameraMotionController::GoToHome()

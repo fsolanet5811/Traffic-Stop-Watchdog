@@ -56,7 +56,7 @@ void SerialPort::Open(string devicePath)
     tty.c_oflag &= ~OPOST; // Prevent special interpretation of output bytes (e.g. newline chars)
     tty.c_oflag &= ~ONLCR; // Prevent conversion of newline to carriage return/line feed
 
-    tty.c_cc[VTIME] = 1;    // Wait for up to .1s (1 deciseconds), returning as soon as any data is received.
+    tty.c_cc[VTIME] = 10;    // Wait for up to .1s (1 deciseconds), returning as soon as any data is received.
     tty.c_cc[VMIN] = 0;
 
     // Set in/out baud rate to be 9600
@@ -75,9 +75,7 @@ void SerialPort::Open(string devicePath)
 
 int SerialPort::Read(unsigned char* buffer, int bytesToRead)
 {
-    _portKey.lock();
     int bytesRead = read(_port, buffer, bytesToRead);
-    _portKey.unlock();
 
     // Make sure it worked.
     if(bytesToRead == -1)
@@ -90,9 +88,7 @@ int SerialPort::Read(unsigned char* buffer, int bytesToRead)
 
 int SerialPort::Write(unsigned char* data, int bytesToWrite)
 {
-    _portKey.lock();
     int bytesWritten = write(_port, data, bytesToWrite);
-    _portKey.unlock();
 
     if(bytesWritten == -1)
     {

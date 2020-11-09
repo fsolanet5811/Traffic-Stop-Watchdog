@@ -42,6 +42,7 @@ namespace tsw::imaging
     {
     public:
         FlirCamera();
+        ~FlirCamera();
         vector<string> FindDevices();
         void Connect(string serialNumber);
         double GetDeviceTemperature();
@@ -86,7 +87,9 @@ namespace tsw::imaging
         string _recordedFileName;
         uint _callbackKey;
         VideoWriter _aviWriter;
-
+        queue<ImagePtr> _frameBuffer;
+        mutex _frameBufferKey;
+        future<void> _recordFuture;
         void Record();
         void OnLiveFeedImageReceived(LiveFeedCallbackArgs args);
         Mat MatFromImage(ImagePtr image);
@@ -125,5 +128,17 @@ namespace tsw::imaging
 
     protected:
         Vector2* GetDesiredOfficerLocation(ImagePtr image);
+    };
+
+    class TestOfficerLocator : public OfficerLocator
+    {
+    public:
+        TestOfficerLocator(int16_t OfficerClassId);
+
+    protected:
+        Vector2* GetDesiredOfficerLocation(ImagePtr image);
+
+    private:
+        int _status;
     };
 }

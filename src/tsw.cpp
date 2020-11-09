@@ -5,14 +5,66 @@
 using namespace tsw::imaging;
 using namespace tsw::io;
 
+DeviceSerialPort* ConnectToDevice(string deviceSerialPath)
+{
+    SerialPort rawCommandPort;
+    while(true)
+    {
+        try
+        {
+            cout << "Opening device serial port on path " << deviceSerialPath << endl;
+            rawCommandPort.Open(deviceSerialPath);
+            cout << "Device serial port opened" << endl;
+            break;
+        }
+        catch(exception e)
+        {
+            cout << "Could not open serial port" << endl; 
+        }
+
+        // Wait a bit before connecting again.
+        sleep(5);
+    }
+    
+    // Now we can hook up the device wrapper and start reading from the port.
+    DeviceSerialPort* commandPort = new DeviceSerialPort(rawCommandPort);
+    commandPort->StartGathering();
+    return commandPort;
+}
+
+FlirCamera* ConnectToCamera(string cameraSerialNumber)
+{
+    FlirCamera* camera = new FlirCamera();;
+    while(true)
+    {
+        try
+        {
+            cout << "Connecting to camera " << cameraSerialNumber << endl;
+            camera->Connect(cameraSerialNumber);
+            cout << "Camera connected" << endl;
+            camera->SetFrameHeight(480);
+            camera->SetFrameWidth(720);
+            camera->SetFrameRate(25);
+            return camera;
+        }
+        catch(exception e)
+        {
+            cout << "Could not connect to camera. " << e.what() << endl;
+        }
+
+        // Wait a bit before connecting again.
+        sleep(5);
+    }
+}
+
 int main(int argc, char* argv[])
 {
     // Initialize the settings.
     string thisFile(argv[0]);
-    string startingDir = thisFile.substr(0, startingDir.find_last_of('/'));
-    string settingsFile = startingDir + "/tsw.config";
+    string startingDir = thisFile.substr(0, thisFile.find_last_of('/'));
+    string settingsFile = startingDir + "/tsw.json";
     cout << "Loading settings from " << settingsFile << endl;
-    Settings settings("tsw.config");
+    Settings settings(settingsFile);
     cout << "Settings loaded" << endl;
 
     // Connect to the device port.
@@ -25,16 +77,15 @@ int main(int argc, char* argv[])
     CommandAgent agent(commandPort);
 
     // Connect to the camera and attach the recorder.
-    cout << "Connecting to camera " << settings.CameraSerialNumber << endl;
-    FlirCamera camera;    
-    camera.Connect(settings.CameraSerialNumber);
-    cout << "Camera connected" << endl;
-    Recorder recorder(camera);
+    FlirCamera* camera = ConnectToCamera(settings.CameraSerialNumber);
+    Recorder recorder(*camera);
 
     // Setup the motion control.
-    cout << "Using officer class id " << settings.OfficerClassId << endl;
     ConfidenceOfficerLocator officerLocator(settings.OfficerClassId);
-    CameraMotionController motionController(camera, officerLocator, commandPort);
+    officerLocator.TargetRegionProportion = settings.TargetRegionProportion;
+    officerLocator.SafeRegionProportion = settings.SafeRegionProportion;
+    CameraMotionController motionController(*camera, officerLocator, commandPort);
+    motionController.CameraFramesToSkip = settings.CameraFramesToSkipMoving;
 
     // Now here comes the actual processing.
     // For now, if it messes up, we will just display an error and 
@@ -43,6 +94,7 @@ int main(int argc, char* argv[])
         while(true)
         {
             // Read a command from the handheld device and acknowledge it.
+            cout << "Waiting for command" << endl;
             Command* command = agent.ReadCommand(Handheld);
             agent.AcknowledgeReceived(Handheld);
 
@@ -51,7 +103,7 @@ int main(int argc, char* argv[])
             {
                 case StartOfficerTracking:
                     cout << "Starting officer tracking" << endl;
-                    camera.StartLiveFeed();
+                    camera->StartLiveFeed();
                     recorder.StartRecording("footage.avi");
                     motionController.StartCameraMotionGuidance();
                     break;
@@ -60,7 +112,7 @@ int main(int argc, char* argv[])
                     cout << "Stopping officer tracking" << endl;
                     motionController.StopCameraMotionGuidance();
                     recorder.StopRecording();
-                    camera.StopLiveFeed();
+                    camera->StopLiveFeed();
                     break;
 
                 default:
@@ -80,9 +132,9 @@ int main(int argc, char* argv[])
     commandPort.StopGathering();
     rawCommandPort.Close();
 
-    if(camera.IsLiveFeedOn())
+    if(camera->IsLiveFeedOn())
     {
-        camera.StopLiveFeed();
+        camera->StopLiveFeed();
     }
     
     if(recorder.IsRecording())

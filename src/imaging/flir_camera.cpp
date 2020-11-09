@@ -20,6 +20,12 @@ FlirCamera::FlirCamera()
     _isLiveFeedOn = false;
 }
 
+FlirCamera::~FlirCamera()
+{
+    // Make sure the live feed is not going.
+    StopLiveFeed();
+}
+
 vector<string> FlirCamera::FindDevices()
 {
     _system->UpdateCameras();
@@ -52,6 +58,11 @@ void FlirCamera::Connect(string serialNumber)
     _camera->ExposureAuto = ExposureAuto_Continuous;
     _camera->GainAuto = GainAuto_Continuous;
     _camera->AcquisitionMode = AcquisitionMode_Continuous;
+
+    // Object detection settings.
+    _camera->ChunkEnable = true;
+    _camera->ChunkModeActive = true;
+    _camera->RgbTransformLightSource = RgbTransformLightSource_Tungsten2800K;
 }
 
 double FlirCamera::GetDeviceTemperature()

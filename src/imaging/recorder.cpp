@@ -35,16 +35,29 @@ void Recorder::StartRecording(string fileName)
 
         // Listen for when the camera gets frames.
         _callbackKey = _camera->RegisterLiveFeedCallback(bind(&Recorder::OnLiveFeedImageReceived, this, placeholders::_1));
+
+        // Start the thread that actually saves these frames.
+        _recordFuture = async(launch::async, [this]()
+        {
+            Record();
+        });
     }
 }
 
 void Recorder::StopRecording()
 {
-    // Stop listening for the new frames.
-    _camera->UnregisterLiveFeedCallback(_callbackKey);
+    if(IsRecording())
+    {
+        // Stop listening for the new frames.
+        _camera->UnregisterLiveFeedCallback(_callbackKey);
 
-    // Close the video up.
-    _aviWriter.release();
+        // Wait for the recording thread to finish. (This could take a while!)
+        _isRecording = false;
+        _recordFuture.wait();
+
+        // Close the video up.
+        _aviWriter.release();
+    }
 }
 
 bool Recorder::IsRecording()
@@ -54,9 +67,41 @@ bool Recorder::IsRecording()
 
 void Recorder::OnLiveFeedImageReceived(LiveFeedCallbackArgs args)
 {
-    // Add this image frame to our video.
-    _aviWriter.write(MatFromImage(args.image));
-    cout << "Frame Recorded" << endl;
+    // Add this image frame to our buffer.
+    // Another thread will take care of actually recording it.
+    // We do this so that images can be acquired as fast as possible.
+    _frameBufferKey.lock();
+    _frameBuffer.push(args.image);
+    _frameBufferKey.unlock();
+}
+
+void Recorder::Record()
+{
+    while(IsRecording())
+    {
+        // Put all of the frames that are in the buffer in the video.
+        while(true)
+        {
+            _frameBufferKey.lock();
+            if(_frameBuffer.empty())
+            {
+                // No frames to record.
+                _frameBufferKey.unlock();
+                break;
+            }
+
+            // Access and remove the next frame.
+            ImagePtr image = _frameBuffer.front();
+            _frameBuffer.pop();
+            _frameBufferKey.unlock();
+
+            // Put this frame in the video.
+            _aviWriter.write(MatFromImage(image));
+        }
+
+        // Wait a bit before recording more frames.
+        usleep(100000);
+    }
 }
 
 Mat Recorder::MatFromImage(ImagePtr image)
