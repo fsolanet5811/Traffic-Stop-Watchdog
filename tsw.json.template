@@ -1,0 +1,16 @@
+{
+    "DeviceSerialPath": "/dev/ttyACM1",
+    "CameraSerialNumber": "20386745",
+    "OfficerClassId": 1,
+    "TargetRegionProportion":
+    {
+        "X": 0.2,
+        "Y": 0.15
+    },
+    "SafeRegionProportion":
+    {
+        "X": 0.5,
+        "Y": 0.3
+    },
+    "CameraFramesToSkipMoving": 5
+}
