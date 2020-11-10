@@ -104,7 +104,7 @@ int main(int argc, char* argv[])
                 case StartOfficerTracking:
                     cout << "Starting officer tracking" << endl;
                     camera->StartLiveFeed();
-                    recorder.StartRecording("footage.avi");
+                    recorder.StartRecording("1footage.avi");
                     motionController.StartCameraMotionGuidance();
                     break;
 
