@@ -12,14 +12,14 @@ DeviceSerialPort* ConnectToDevice(string deviceSerialPath)
     {
         try
         {
-            cout << "Opening device serial port on path " << deviceSerialPath << endl;
+            Log("Opening device serial port on path " + deviceSerialPath, Debug | Serial);
             rawCommandPort.Open(deviceSerialPath);
-            cout << "Device serial port opened" << endl;
+            Log("Device serial port opened", Information | Serial);
             break;
         }
         catch(exception e)
         {
-            cout << "Could not open serial port" << endl; 
+            Log("Could not open serial port", tsw::io::Error); 
         }
 
         // Wait a bit before connecting again.
@@ -39,17 +39,14 @@ FlirCamera* ConnectToCamera(string cameraSerialNumber)
     {
         try
         {
-            cout << "Connecting to camera " << cameraSerialNumber << endl;
+            Log("Connecting to camera " + cameraSerialNumber, Debug);
             camera->Connect(cameraSerialNumber);
-            cout << "Camera connected" << endl;
-            camera->SetFrameHeight(480);
-            camera->SetFrameWidth(720);
-            camera->SetFrameRate(25);
+            Log("Camera connected", Information);
             return camera;
         }
         catch(exception e)
         {
-            cout << "Could not connect to camera. " << e.what() << endl;
+            Log("Could not connect to camera. " + string(e.what()), tsw::io::Error);
         }
 
         // Wait a bit before connecting again.
@@ -63,21 +60,24 @@ int main(int argc, char* argv[])
     string thisFile(argv[0]);
     string startingDir = thisFile.substr(0, thisFile.find_last_of('/'));
     string settingsFile = startingDir + "/tsw.json";
-    cout << "Loading settings from " << settingsFile << endl;
+    Log("Loading settings from " + settingsFile, Debug);
     Settings settings(settingsFile);
-    cout << "Settings loaded" << endl;
+    Log("Settings loaded", Information);
 
     // Connect to the device port.
     SerialPort rawCommandPort;
-    cout << "Opening device serial port on path " << settings.DeviceSerialPath << endl;
+    Log("Opening device serial port on path " + settings.DeviceSerialPath, Debug | Serial);
     rawCommandPort.Open(settings.DeviceSerialPath);
-    cout << "Device serial port opened" << endl;
+    Log("Device serial port opened", Information | Serial);
     DeviceSerialPort commandPort(rawCommandPort);
     commandPort.StartGathering();
     CommandAgent agent(commandPort);
 
     // Connect to the camera and attach the recorder.
     FlirCamera* camera = ConnectToCamera(settings.CameraSerialNumber);
+    camera->SetFrameHeight(settings.CameraFrameHeight);
+    camera->SetFrameWidth(settings.CameraFrameWidth);
+    camera->SetFrameRate(settings.CameraFrameRate);
     Recorder recorder(*camera);
 
     // Setup the motion control.
@@ -94,7 +94,7 @@ int main(int argc, char* argv[])
         while(true)
         {
             // Read a command from the handheld device and acknowledge it.
-            cout << "Waiting for command" << endl;
+            Log("Waiting for command", Information | Serial);
             Command* command = agent.ReadCommand(Handheld);
             agent.AcknowledgeReceived(Handheld);
 
@@ -102,21 +102,21 @@ int main(int argc, char* argv[])
             switch(command->action)
             {
                 case StartOfficerTracking:
-                    cout << "Starting officer tracking" << endl;
+                    Log("Starting officer tracking", Information | Serial | Recording | Officers);
                     camera->StartLiveFeed();
                     recorder.StartRecording("1footage.avi");
                     motionController.StartCameraMotionGuidance();
                     break;
 
                 case StopOfficerTracking:
-                    cout << "Stopping officer tracking" << endl;
+                    Log("Stopping officer tracking", Information | Serial | Recording | Officers);
                     motionController.StopCameraMotionGuidance();
                     recorder.StopRecording();
                     camera->StopLiveFeed();
                     break;
 
                 default:
-                    cout << "Unimplemented command " << command->action << endl;
+                    Log("Unimplemented command " + command->action, tsw::io::Error | Serial);
             }
 
             // Gotta dealocate!
@@ -125,7 +125,7 @@ int main(int argc, char* argv[])
     }
     catch(exception ex)
     {
-        cout << endl << "An error occured:" << endl << ex.what() << endl;
+        Log("An error occured:\n" + string(ex.what()), tsw::io::Error);
     }
     
     // Stop all of the devices.

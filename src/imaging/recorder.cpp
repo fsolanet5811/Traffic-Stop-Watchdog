@@ -2,9 +2,11 @@
 #include "Spinnaker.h"
 #include "SpinGenApi/SpinnakerGenApi.h"
 #include "opencv.hpp"
+#include "io.hpp"
 #include <functional>
 
 using namespace tsw::imaging;
+using namespace tsw::io;
 using namespace Spinnaker;
 using namespace cv;
 using namespace std;
@@ -22,7 +24,6 @@ void Recorder::StartRecording(string fileName)
         _isRecording = true;
         _recordedFileName = fileName;
        
-
         // Configure the video.
         Size frameSize;
         frameSize.height = _camera->GetFrameHeight();
@@ -70,9 +71,11 @@ void Recorder::OnLiveFeedImageReceived(LiveFeedCallbackArgs args)
     // Add this image frame to our buffer.
     // Another thread will take care of actually recording it.
     // We do this so that images can be acquired as fast as possible.
+    Log("Adding frame # " + to_string(args.imageIndex) + " to recording buffer", Recording);
     _frameBufferKey.lock();
     _frameBuffer.push(args.image);
     _frameBufferKey.unlock();
+    Log("Frame added to recording buffer", Recording);
 }
 
 void Recorder::Record()
@@ -97,6 +100,7 @@ void Recorder::Record()
 
             // Put this frame in the video.
             _aviWriter.write(MatFromImage(image));
+            Log("Frame recorded", Recording);
         }
 
         // Wait a bit before recording more frames.

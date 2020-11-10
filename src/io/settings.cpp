@@ -39,6 +39,9 @@ void Settings::Load(string settingsFile)
     TargetRegionProportion = ReadVector2(doc, "TargetRegionProportion");
     SafeRegionProportion = ReadVector2(doc, "SafeRegionProportion");
     CameraFramesToSkipMoving = doc["CameraFramesToSkipMoving"].GetInt();
+    CameraFrameRate = doc["CameraFrameRate"].GetDouble();
+    CameraFrameHeight = doc["CameraFrameHeight"].GetInt();
+    CameraFrameWidth = doc["CameraFrameWidth"].GetInt();
 }
 
 Vector2 Settings::ReadVector2(Document& doc, string vectorName)

@@ -46,7 +46,7 @@ bool CameraMotionController::IsGuidingCameraMotion()
     return _isGuidingCameraMotion;
 }
 
-void CameraMotionController::SendMoveCommand(uchar specifierByte, double horizontal, double vertical)
+void CameraMotionController::SendMoveCommand(uchar specifierByte, double horizontal, double vertical, string moveName)
 {
     // Calculate the motor values for each of these.
     int horizontalMotor = AngleToMotorValue(horizontal);
@@ -63,13 +63,14 @@ void CameraMotionController::SendMoveCommand(uchar specifierByte, double horizon
 
     // Now we can send the command to the motor.
     // This is an asynchronous move since we don't really need to know when the motor has moved.
-    cout << "MOVE\tH:  " << horizontal << "\tV:  " << vertical << endl;
+    Log("MOVE " + moveName + "\tH:  " + to_string(horizontal) + "\tV:  " + to_string(vertical), Movements);
     _commandPort->WriteToDevice(Motors, bytes);
 
     // Wait for the acknowledge (not the same as a synch response).
     // It is possible that the read response is not an ack but a success/failure from a previous move.
     while(true)
     {
+        Log("Reading move command acknowledge", Acknowledge);
         DeviceMessage message = _commandPort->ReadFromDevice(Motors);
 
         // Acknowledgements will be four 1's in the lsbs.
@@ -77,16 +78,18 @@ void CameraMotionController::SendMoveCommand(uchar specifierByte, double horizon
         if(lsbs == 0x0f)
         {
             // This is the acknowledgement.
+            Log("Move command acknowledge received", Acknowledge);
             return;
         }
 
         if(lsbs == 0x02)
         {
             // There was a fault in the motors' last movement.
-            cout << "Motors returned FAULT!" << endl;
+            Log("Motors returned FAULT!", Error);
         }
 
         // The byte was a success byte, just read another one.
+        Log("MOve command success response read", Acknowledge);
     }
     
 }
@@ -117,6 +120,10 @@ void CameraMotionController::OnLivefeedImageReceived(LiveFeedCallbackArgs args)
 
             SendAsyncRelativeMoveCommand(horizontalRotate, verticalRotate);
         }
+        else
+        {
+            Log("Officer found, no movements necessary", Movements | Officers);
+        }       
     }
     else
     {
@@ -185,6 +192,8 @@ void CameraMotionController::CheckLastSeen()
     // See if we actually have a last seen position.
     if(_lastSeen.foundOfficer)
     {
+        Log("Checking last seen officer direction for officer", Officers);
+
         // Assume that the officer went in that direction.
         double horizontalAngle = _lastSeen.movement.x * HorizontalFov;
         double verticalAngle = _lastSeen.movement.y * VerticalFov;
@@ -202,25 +211,26 @@ void CameraMotionController::CheckLastSeen()
 
 void CameraMotionController::SendAsyncRelativeMoveCommand(double horizontal, double vertical)
 {
-    SendMoveCommand(0xe6, horizontal, vertical);
+    SendMoveCommand(0xe6, horizontal, vertical, "Async Rel");
 }
 
 void CameraMotionController::SendSyncRelativeMoveCommand(double horizontal, double vertical)
 {
-    SendMoveCommand(0xe5, horizontal, vertical);
+    SendMoveCommand(0xe5, horizontal, vertical, "Sync Rel");
 }
 
 void CameraMotionController::SendAsyncAbsoluteMoveCommand(double horizontal, double vertical)
 {
-    SendMoveCommand(0xe8, horizontal, vertical);
+    SendMoveCommand(0xe8, horizontal, vertical, "Async Abs");
 }
 
 void CameraMotionController::SendSyncAbsoluteMoveCommand(double horizontal, double vertical)
 {
-    SendMoveCommand(0xe7, horizontal, vertical);
+    SendMoveCommand(0xe7, horizontal, vertical, "Sync Abs");
 }
 
 void CameraMotionController::GoToHome()
 {
+    Log("Going to home position", Movements);
     SendSyncAbsoluteMoveCommand(HomeAngles.x, HomeAngles.y);
 }

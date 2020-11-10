@@ -1,6 +1,7 @@
 #include "spinnaker/SpinGenApi/SpinnakerGenApi.h"
 #include "spinnaker/Spinnaker.h"
 #include "imaging.hpp"
+#include "io.hpp"
 #include <iostream>
 #include <sstream>
 #include <future>
@@ -11,6 +12,7 @@ using namespace Spinnaker;
 using namespace Spinnaker::GenApi;
 using namespace Spinnaker::GenICam;
 using namespace tsw::imaging;
+using namespace tsw::io;
 using namespace std;
 
 FlirCamera::FlirCamera()
@@ -96,6 +98,7 @@ void FlirCamera::StartLiveFeed()
     // This ensures that we don't have multiple livefeed instances started.
     if(!IsLiveFeedOn())
     {
+        Log("Starting camera live feed", Frames);
         _isLiveFeedOn = true;
         _liveFeedFuture = async(launch::async, [this]()
         {
@@ -106,10 +109,14 @@ void FlirCamera::StartLiveFeed()
 
 void FlirCamera::StopLiveFeed()
 {
-    _isLiveFeedOn = false;
+    if(IsLiveFeedOn())
+    {
+        Log("Stopping camera live feed", Frames);
+        _isLiveFeedOn = false;
 
-    // This will wait for the live feed thread to stop.
-    _liveFeedFuture.wait();
+        // This will wait for the live feed thread to stop.
+        _liveFeedFuture.wait();
+    }
 }
 
 bool FlirCamera::IsLiveFeedOn()
@@ -144,19 +151,24 @@ void FlirCamera::UnregisterLiveFeedCallback(uint callbackKey)
 
 void FlirCamera::OnLiveFeedImageReceived(ImagePtr image, uint imageIndex)
 {
+    Log("Frame # " + to_string(imageIndex) + " acquired", Frames);
     LiveFeedCallbackArgs args;
     args.image = image;
     args.imageIndex = imageIndex;
 
     // We do not want to call any of the callbacks while one of them is being removed/added.
+    Log("Starting live feed callbacks", Frames);
     _liveFeedKey.lock();
     for(LiveFeedCallback cb : _liveFeedCallbacks)
     {
+        Log("Calling callback", Frames);
         cb.callback(args);
+        Log("Callback finished", Frames);
     }
 
     // Now we can mess with the callback list.
     _liveFeedKey.unlock();
+    Log("Finished live feed callbacks", Frames);
 }
 
 void FlirCamera::RunLiveFeed()
@@ -202,10 +214,14 @@ ImagePtr FlirCamera::CaptureImage()
 
 void FlirCamera::SetFrameHeight(int frameHeight)
 {
+    Log("Changing camera frame height to " + frameHeight, Debug | Frames);
     _camera->Height.SetValue(frameHeight);
+    Log("Camera frame height changed", Information | Frames);
 }
 
 void FlirCamera::SetFrameWidth(int frameWidth)
 {
+    Log("Changing camera frame width to " + frameWidth, Debug | Frames);
     _camera->Width.SetValue(frameWidth);
+    Log("Camera frame width changed", Information | Frames);
 }

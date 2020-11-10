@@ -1,7 +1,9 @@
 #include "imaging.hpp"
 #include "Spinnaker.h"
+#include "io.hpp"
 
 using namespace tsw::imaging;
+using namespace tsw::io;
 using namespace Spinnaker;
 
 OfficerLocator::OfficerLocator(int16_t officerClassId)
@@ -19,6 +21,7 @@ OfficerDirection OfficerLocator::FindOfficer(ImagePtr image)
     if(!officerLoc)
     {
         // No officers were found on the image.
+        Log("No officers found", Officers);
         res.foundOfficer = false;
         return res;
     }

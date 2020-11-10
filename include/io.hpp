@@ -94,7 +94,7 @@ namespace tsw::io
         uint _cameraLivefeedCallbackKey;
         OfficerSearchState _searchState;
         OfficerDirection _lastSeen;
-        void SendMoveCommand(uchar specifierByte, double horizontal, double vertical);
+        void SendMoveCommand(uchar specifierByte, double horizontal, double vertical, string moveName);
         void CheckLastSeen();
         void OnLivefeedImageReceived(LiveFeedCallbackArgs args);
         static int AngleToMotorValue(double angle);
@@ -145,9 +145,30 @@ namespace tsw::io
         Vector2 TargetRegionProportion;
         Vector2 SafeRegionProportion;
         int CameraFramesToSkipMoving;
+        double CameraFrameRate;
+        int CameraFrameWidth;
+        int CameraFrameHeight;
         void Load(string settingsFile);
 
     private:
         static Vector2 ReadVector2(Document& doc, string vectorName);
     };
+
+
+    enum LogFlag
+    {
+        Error = 0b1,
+        Debug = 0b11,
+        Information = 0b111,
+        Frames = 0b10001,
+        Officers = 0b100001,
+        Movements = 0b1000001,
+        Recording = 145,
+        RawSerial = 256,
+        DeviceSerial = 512,
+        Acknowledge = 1792
+    };
+
+    void Log(string s, uint flags);
+    void ConfigureLog(uint flags);
 }
