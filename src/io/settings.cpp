@@ -2,11 +2,13 @@
 #include <string>
 #include <fstream>
 #include <streambuf>
-#include <json.h>
+#include <rapidjson.h>
+#include <document.h>
+#include "filereadstream.h"
 
 using namespace tsw::io;
 using namespace std;
-using namespace Json;
+using namespace rapidjson;
 
 Settings::Settings()
 {
@@ -21,32 +23,28 @@ Settings::Settings(string settingsFile)
 
 void Settings::Load(string settingsFile)
 {
-    ifstream settignsStream;
-    settignsStream.open(settingsFile);
-    CharReaderBuilder builder;
-    Value root;
-    JSONCPP_STRING errors;
+    FILE* settingsFileHandle = fopen(settingsFile.c_str(), "r");
+    char readBuffer[65536];
+    FileReadStream settingsStream(settingsFileHandle, readBuffer, sizeof(readBuffer));
+    Document doc;
 
     // Read in the file.
-    if(!parseFromStream(builder, settignsStream, &root, &errors))
-    {
-        // Something did not work.
-        throw runtime_error("Failed to read settings. " + errors);
-    }
-
+    doc.ParseStream(settingsStream);
+    fclose(settingsFileHandle);
+    
     // Now we can populate our settings.
-    DeviceSerialPath = root["DeviceSerialPath"].asString();
-    CameraSerialNumber = root["CameraSerialNumber"].asString();
-    OfficerClassId = root["OfficerClassId"].asInt();
-    TargetRegionProportion = ReadVector2(root["TargetRegionProportion"]);
-    SafeRegionProportion = ReadVector2(root["SafeRegionProportion"]);
-    CameraFramesToSkipMoving = root["CameraFramesToSkipMoving"].asInt();
+    DeviceSerialPath = doc["DeviceSerialPath"].GetString();
+    CameraSerialNumber = doc["CameraSerialNumber"].GetString();
+    OfficerClassId = doc["OfficerClassId"].GetInt();
+    TargetRegionProportion = ReadVector2(doc, "TargetRegionProportion");
+    SafeRegionProportion = ReadVector2(doc, "SafeRegionProportion");
+    CameraFramesToSkipMoving = doc["CameraFramesToSkipMoving"].GetInt();
 }
 
-Vector2 Settings::ReadVector2(Value jsonVector)
+Vector2 Settings::ReadVector2(Document& doc, string vectorName)
 {
     Vector2 v;
-    v.x = jsonVector["X"].asDouble();
-    v.y = jsonVector["Y"].asDouble();
+    v.x = doc[vectorName.c_str()]["X"].GetDouble();
+    v.y = doc[vectorName.c_str()]["Y"].GetDouble();
     return v;
 }

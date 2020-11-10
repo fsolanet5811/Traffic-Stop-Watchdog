@@ -2,13 +2,14 @@
 
 #include "Spinnaker.h"
 #include "imaging.hpp"
-#include "json.h"
+#include "rapidjson.h"
+#include "document.h"
 #include <future>
 
 using namespace Spinnaker;
 using namespace tsw::imaging;
 using namespace std;
-using namespace Json;
+using namespace rapidjson;
 
 namespace tsw::io
 {
@@ -147,6 +148,6 @@ namespace tsw::io
         void Load(string settingsFile);
 
     private:
-        static Vector2 ReadVector2(Value jsonVector);
+        static Vector2 ReadVector2(Document& doc, string vectorName);
     };
 }
