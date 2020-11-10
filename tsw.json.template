@@ -12,5 +12,21 @@
         "X": 0.5,
         "Y": 0.3
     },
-    "CameraFramesToSkipMoving": 5
+    "CameraFramesToSkipMoving": 5,
+    "CameraFrameRate": 25.0,
+    "CameraFrameHeight": 480,
+    "CameraFrameWidth": 720,
+    "LogFlags":
+    {
+        "Error": true,
+        "Debug": true,
+        "Information": true,
+        "Frames": false,
+        "Officers": false,
+        "Movements": false,
+        "Recording": false,
+        "RawSerial": false,
+        "DeviceSerial": false,
+        "Acknowledge": false
+    }
 }
