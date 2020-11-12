@@ -14,10 +14,6 @@ DeviceSerialPort* ConnectToDevice(string deviceSerialPath)
         {
             Log("Opening device serial port on path " + deviceSerialPath, Debug | DeviceSerial);
             rawCommandPort.Open(deviceSerialPath);
-
-            //Clear the port of any misc bytes it may have. The system assumes a fresh start.
-            rawCommandPort.Clear();
-
             Log("Device serial port opened", Information | DeviceSerial);
             break;
         }
@@ -71,6 +67,7 @@ int main(int argc, char* argv[])
     // Connect to the device port.
     SerialPort rawCommandPort;
     Log("Opening device serial port on path " + settings.DeviceSerialPath, Debug | DeviceSerial);
+
     DeviceSerialPort* commandPort = ConnectToDevice(settings.DeviceSerialPath);
     Log("Device serial port opened", Information | DeviceSerial);
     commandPort->StartGathering();
