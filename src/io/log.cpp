@@ -3,7 +3,7 @@
 using namespace tsw::io;
 
 // These are what we currently will log to the console.
-uint _flags = 0;
+uint _flags = Information;
 
 void ConfigureLog(uint flags)
 {

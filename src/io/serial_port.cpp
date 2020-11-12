@@ -98,6 +98,12 @@ int SerialPort::Write(unsigned char* data, int bytesToWrite)
     return bytesWritten;
 }
 
+void SerialPort::Clear()
+{
+    uchar temp[4096];
+    while(Read(temp, 4096)) { }
+}
+
 void SerialPort::Close()
 {
     close(_port);
