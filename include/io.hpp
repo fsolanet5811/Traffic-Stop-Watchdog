@@ -20,6 +20,7 @@ namespace tsw::io
         void Open(string devicePath);
         int Read(unsigned char* buffer, int bytesToRead);
         int Write(unsigned char* data, int bytesToWrite);
+        void Clear();
         void Close();
     private:
         int _port;
@@ -148,10 +149,12 @@ namespace tsw::io
         double CameraFrameRate;
         int CameraFrameWidth;
         int CameraFrameHeight;
+        uint LogFlags;
         void Load(string settingsFile);
 
     private:
         static Vector2 ReadVector2(Document& doc, string vectorName);
+        static bool ReadLogFlag(Document& doc, string flagName);
     };
 
 
@@ -168,7 +171,7 @@ namespace tsw::io
         DeviceSerial = 512,
         Acknowledge = 1792
     };
-
-    void Log(string s, uint flags);
-    void ConfigureLog(uint flags);
 }
+
+void ConfigureLog(uint flags);
+void Log(string s, uint flags);

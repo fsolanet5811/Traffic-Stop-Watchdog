@@ -17,8 +17,7 @@ Settings::Settings()
 
 Settings::Settings(string settingsFile)
 {
-    Load(settingsFile);
-    
+    Load(settingsFile);   
 }
 
 void Settings::Load(string settingsFile)
@@ -46,7 +45,7 @@ void Settings::Load(string settingsFile)
     // Get the log settings.
     LogFlags |= ReadLogFlag(doc, "Error");
     LogFlags |= ReadLogFlag(doc, "Debug") << 1;
-    LogFlags |= ReadLogFlag(doc, "Info") << 2;
+    LogFlags |= ReadLogFlag(doc, "Information") << 2;
 
     // Yes, the skip is intentional. I was too lazy to shift everything around, so deal with it.
     LogFlags |= ReadLogFlag(doc, "Frames") << 4;

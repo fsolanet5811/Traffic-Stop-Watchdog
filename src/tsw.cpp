@@ -60,9 +60,10 @@ int main(int argc, char* argv[])
     string thisFile(argv[0]);
     string startingDir = thisFile.substr(0, thisFile.find_last_of('/'));
     string settingsFile = startingDir + "/tsw.json";
-    Log("Loading settings from " + settingsFile, Debug);
+    Log("Loading settings from " + settingsFile, Information);
     Settings settings(settingsFile);
     Log("Settings loaded", Information);
+    ConfigureLog(settings.LogFlags);
 
     // Connect to the device port.
     SerialPort rawCommandPort;

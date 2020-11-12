@@ -2,17 +2,17 @@
 
 using namespace tsw::io;
 
-// These are what we currently will log to the console.
-uint _flags = Information;
+uint LOG_FLAGS = tsw::io::Information;
 
 void ConfigureLog(uint flags)
 {
-    _flags = flags;
+    LOG_FLAGS = flags;
 }
 
+// This will log something to the console if the flags associated with it match us.
 void Log(string s, uint flags)
 {
-    if(flags & _flags)
+    if(flags & LOG_FLAGS)
     {
         cout << s << endl;
     }
