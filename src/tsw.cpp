@@ -12,9 +12,9 @@ DeviceSerialPort* ConnectToDevice(string deviceSerialPath)
     {
         try
         {
-            Log("Opening device serial port on path " + deviceSerialPath, Debug | Serial);
+            Log("Opening device serial port on path " + deviceSerialPath, Debug | DeviceSerial);
             rawCommandPort.Open(deviceSerialPath);
-            Log("Device serial port opened", Information | Serial);
+            Log("Device serial port opened", Information | DeviceSerial);
             break;
         }
         catch(exception e)
@@ -66,9 +66,9 @@ int main(int argc, char* argv[])
 
     // Connect to the device port.
     SerialPort rawCommandPort;
-    Log("Opening device serial port on path " + settings.DeviceSerialPath, Debug | Serial);
+    Log("Opening device serial port on path " + settings.DeviceSerialPath, Debug | DeviceSerial);
     rawCommandPort.Open(settings.DeviceSerialPath);
-    Log("Device serial port opened", Information | Serial);
+    Log("Device serial port opened", Information | DeviceSerial);
     DeviceSerialPort commandPort(rawCommandPort);
     commandPort.StartGathering();
     CommandAgent agent(commandPort);
@@ -94,7 +94,7 @@ int main(int argc, char* argv[])
         while(true)
         {
             // Read a command from the handheld device and acknowledge it.
-            Log("Waiting for command", Information | Serial);
+            Log("Waiting for command", Information | DeviceSerial);
             Command* command = agent.ReadCommand(Handheld);
             agent.AcknowledgeReceived(Handheld);
 
@@ -102,21 +102,21 @@ int main(int argc, char* argv[])
             switch(command->action)
             {
                 case StartOfficerTracking:
-                    Log("Starting officer tracking", Information | Serial | Recording | Officers);
+                    Log("Starting officer tracking", Information | DeviceSerial | Recording | Officers);
                     camera->StartLiveFeed();
                     recorder.StartRecording("1footage.avi");
                     motionController.StartCameraMotionGuidance();
                     break;
 
                 case StopOfficerTracking:
-                    Log("Stopping officer tracking", Information | Serial | Recording | Officers);
+                    Log("Stopping officer tracking", Information | DeviceSerial | Recording | Officers);
                     motionController.StopCameraMotionGuidance();
                     recorder.StopRecording();
                     camera->StopLiveFeed();
                     break;
 
                 default:
-                    Log("Unimplemented command " + command->action, tsw::io::Error | Serial);
+                    Log("Unimplemented command " + command->action, tsw::io::Error | DeviceSerial);
             }
 
             // Gotta dealocate!

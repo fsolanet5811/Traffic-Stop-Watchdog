@@ -7,7 +7,7 @@ uint _flags = 0;
 
 void ConfigureLog(uint flags)
 {
-    _flags = flags | 0x01;
+    _flags = flags;
 }
 
 void Log(string s, uint flags)
