@@ -1,6 +1,7 @@
 #include "imaging.hpp"
 #include "io.hpp"
 #include "Spinnaker.h"
+#include <fstream>
 
 using namespace tsw::imaging;
 using namespace tsw::io;
