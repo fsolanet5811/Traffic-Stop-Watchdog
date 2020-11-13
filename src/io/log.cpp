@@ -2,18 +2,23 @@
 
 using namespace tsw::io;
 
-uint LOG_FLAGS = tsw::io::Information;
+uint _logFlags = tsw::io::Information;
+mutex _logKey;
 
 void ConfigureLog(uint flags)
 {
-    LOG_FLAGS = flags;
+    _logKey.lock();
+    _logFlags = flags;
+    _logKey.unlock();
 }
 
 // This will log something to the console if the flags associated with it match us.
 void Log(string s, uint flags)
 {
-    if(flags & LOG_FLAGS)
+    _logKey.lock();
+    if(flags & _logFlags)
     {
         cout << s << endl;
     }
+    _logKey.unlock();
 }

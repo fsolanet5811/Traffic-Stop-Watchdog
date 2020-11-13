@@ -19,7 +19,7 @@ void SerialPort::Open(string devicePath)
     int res = open(devicePath.c_str(), O_RDWR);
 
     // See if we made a successful connection.
-    if(res == -1)
+    if(res < 0)
     {
         throw runtime_error("Could not connect to device " + devicePath);
     }
@@ -78,7 +78,7 @@ int SerialPort::Read(unsigned char* buffer, int bytesToRead)
     int bytesRead = read(_port, buffer, bytesToRead);
 
     // Make sure it worked.
-    if(bytesToRead == -1)
+    if(bytesRead == -1)
     {
         throw runtime_error("Failed to read bytes.");
     }

@@ -5,15 +5,15 @@
 using namespace tsw::imaging;
 using namespace tsw::io;
 
-DeviceSerialPort* ConnectToDevice(string deviceSerialPath)
+SerialPort* ConnectToDevice(string deviceSerialPath)
 {
-    SerialPort rawCommandPort;
+    SerialPort* rawCommandPort = new SerialPort();
     while(true)
     {
         try
         {
             Log("Opening device serial port on path " + deviceSerialPath, Debug | DeviceSerial);
-            rawCommandPort.Open(deviceSerialPath);
+            rawCommandPort->Open(deviceSerialPath);
             Log("Device serial port opened", Information | DeviceSerial);
             break;
         }
@@ -26,10 +26,7 @@ DeviceSerialPort* ConnectToDevice(string deviceSerialPath)
         sleep(5);
     }
     
-    // Now we can hook up the device wrapper and start reading from the port.
-    DeviceSerialPort* commandPort = new DeviceSerialPort(rawCommandPort);
-    commandPort->StartGathering();
-    return commandPort;
+    return rawCommandPort;
 }
 
 FlirCamera* ConnectToCamera(string cameraSerialNumber)
@@ -66,13 +63,10 @@ int main(int argc, char* argv[])
     ConfigureLog(settings.LogFlags);
 
     // Connect to the device port.
-    SerialPort rawCommandPort;
-    Log("Opening device serial port on path " + settings.DeviceSerialPath, Debug | DeviceSerial);
-
-    DeviceSerialPort* commandPort = ConnectToDevice(settings.DeviceSerialPath);
-    Log("Device serial port opened", Information | DeviceSerial);
-    commandPort->StartGathering();
-    CommandAgent agent(*commandPort);
+    SerialPort* rawCommandPort = ConnectToDevice(settings.DeviceSerialPath);
+    DeviceSerialPort commandPort(*rawCommandPort);
+    commandPort.StartGathering();
+    CommandAgent agent(commandPort);
 
     // Connect to the camera and attach the recorder.
     FlirCamera* camera = ConnectToCamera(settings.CameraSerialNumber);
@@ -85,7 +79,7 @@ int main(int argc, char* argv[])
     ConfidenceOfficerLocator officerLocator(settings.OfficerClassId);
     officerLocator.TargetRegionProportion = settings.TargetRegionProportion;
     officerLocator.SafeRegionProportion = settings.SafeRegionProportion;
-    CameraMotionController motionController(*camera, officerLocator, *commandPort);
+    CameraMotionController motionController(*camera, officerLocator, commandPort);
     motionController.CameraFramesToSkip = settings.CameraFramesToSkipMoving;
 
     // Now here comes the actual processing.
@@ -104,9 +98,9 @@ int main(int argc, char* argv[])
             {
                 case StartOfficerTracking:
                     Log("Starting officer tracking", Information | DeviceSerial | Recording | Officers);
-                    camera->StartLiveFeed();
-                    recorder.StartRecording("1footage.avi");
                     motionController.StartCameraMotionGuidance();
+                    camera->StartLiveFeed();
+                    recorder.StartRecording("1footage.avi");                    
                     break;
 
                 case StopOfficerTracking:
@@ -130,8 +124,8 @@ int main(int argc, char* argv[])
     }
     
     // Stop all of the devices.
-    commandPort->StopGathering();
-    rawCommandPort.Close();
+    commandPort.StopGathering();
+    rawCommandPort->Close();
 
     if(camera->IsLiveFeedOn())
     {

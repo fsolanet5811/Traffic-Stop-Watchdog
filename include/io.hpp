@@ -161,15 +161,15 @@ namespace tsw::io
     enum LogFlag
     {
         Error = 0b1,
-        Debug = 0b11,
-        Information = 0b111,
-        Frames = 0b10001,
-        Officers = 0b100001,
-        Movements = 0b1000001,
-        Recording = 145,
-        RawSerial = 256,
-        DeviceSerial = 512,
-        Acknowledge = 1792
+        Debug = 0b10,
+        Information = 0b100,
+        Frames = 0b1000,
+        Officers = 0b10000,
+        Movements = 0b100000,
+        Recording = 0b1000000,
+        RawSerial = 0b10000000,
+        DeviceSerial = 0b100000000,
+        Acknowledge = 0b1000000000
     };
 }
 

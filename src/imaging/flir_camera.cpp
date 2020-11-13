@@ -214,14 +214,14 @@ ImagePtr FlirCamera::CaptureImage()
 
 void FlirCamera::SetFrameHeight(int frameHeight)
 {
-    Log("Changing camera frame height to " + frameHeight, Debug | Frames);
+    Log("Changing camera frame height to " + to_string(frameHeight), Debug | Frames);
     _camera->Height.SetValue(frameHeight);
     Log("Camera frame height changed", Information | Frames);
 }
 
 void FlirCamera::SetFrameWidth(int frameWidth)
 {
-    Log("Changing camera frame width to " + frameWidth, Debug | Frames);
+    Log("Changing camera frame width to " + to_string(frameWidth), Debug | Frames);
     _camera->Width.SetValue(frameWidth);
     Log("Camera frame width changed", Information | Frames);
 }

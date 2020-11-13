@@ -21,6 +21,7 @@ CameraMotionController::CameraMotionController(FlirCamera& camera, OfficerLocato
     // By deafult, we did not find an officer.
     _lastSeen.foundOfficer = false;
     _searchState = NotSearching;
+    _isGuidingCameraMotion = false;
 }
 
 void CameraMotionController::StartCameraMotionGuidance()

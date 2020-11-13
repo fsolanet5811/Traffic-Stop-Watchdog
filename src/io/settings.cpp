@@ -46,15 +46,13 @@ void Settings::Load(string settingsFile)
     LogFlags |= ReadLogFlag(doc, "Error");
     LogFlags |= ReadLogFlag(doc, "Debug") << 1;
     LogFlags |= ReadLogFlag(doc, "Information") << 2;
-
-    // Yes, the skip is intentional. I was too lazy to shift everything around, so deal with it.
-    LogFlags |= ReadLogFlag(doc, "Frames") << 4;
-    LogFlags |= ReadLogFlag(doc, "Officers") << 5;
-    LogFlags |= ReadLogFlag(doc, "Movements") << 6;
-    LogFlags |= ReadLogFlag(doc, "Recording") << 7;
-    LogFlags |= ReadLogFlag(doc, "RawSerial") << 8;
-    LogFlags |= ReadLogFlag(doc, "DeviceSerial") << 9;
-    LogFlags |= ReadLogFlag(doc, "Acknowledge") << 10;
+    LogFlags |= ReadLogFlag(doc, "Frames") << 3;
+    LogFlags |= ReadLogFlag(doc, "Officers") << 4;
+    LogFlags |= ReadLogFlag(doc, "Movements") << 5;
+    LogFlags |= ReadLogFlag(doc, "Recording") << 6;
+    LogFlags |= ReadLogFlag(doc, "RawSerial") << 7;
+    LogFlags |= ReadLogFlag(doc, "DeviceSerial") << 8;
+    LogFlags |= ReadLogFlag(doc, "Acknowledge") << 9;
 }
 
 Vector2 Settings::ReadVector2(Document& doc, string vectorName)
