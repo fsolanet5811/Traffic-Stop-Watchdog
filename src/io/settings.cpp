@@ -43,6 +43,7 @@ void Settings::Load(string settingsFile)
     CameraFrameWidth = doc["CameraFrameWidth"].GetInt();
 
     // Get the log settings.
+    LogFlags = 0;
     LogFlags |= ReadLogFlag(doc, "Error");
     LogFlags |= ReadLogFlag(doc, "Debug") << 1;
     LogFlags |= ReadLogFlag(doc, "Information") << 2;
