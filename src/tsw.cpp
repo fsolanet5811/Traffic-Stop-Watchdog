@@ -51,6 +51,19 @@ FlirCamera* ConnectToCamera(string cameraSerialNumber)
     }
 }
 
+void PrintFile(string fileName)
+{
+    ifstream fs;
+    fs.open(fileName);
+    string fileLine;
+    while(getline(fs, fileLine))
+    {
+        cout << fileLine <<endl;
+    }
+
+    fs.close();
+}
+
 int main(int argc, char* argv[])
 {
     // Initialize the settings.
@@ -60,6 +73,7 @@ int main(int argc, char* argv[])
     Log("Loading settings from " + settingsFile, Information);
     Settings settings(settingsFile);
     Log("Settings loaded", Information);
+    PrintFile(settingsFile);
     ConfigureLog(settings.LogFlags);
 
     // Connect to the device port.
