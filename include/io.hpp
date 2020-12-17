@@ -69,6 +69,10 @@ namespace tsw::io
         double HorizontalFov;
         Vector2 HomeAngles;
         uint CameraFramesToSkip;
+        int MinAngle;
+        int MaxAngle;
+        int MinStep;
+        int MaxStep;
         void StartCameraMotionGuidance();
         void StopCameraMotionGuidance();
         bool IsGuidingCameraMotion();
@@ -95,10 +99,11 @@ namespace tsw::io
         uint _cameraLivefeedCallbackKey;
         OfficerSearchState _searchState;
         OfficerDirection _lastSeen;
+        
         void SendMoveCommand(uchar specifierByte, double horizontal, double vertical, string moveName);
         void CheckLastSeen();
         void OnLivefeedImageReceived(LiveFeedCallbackArgs args);
-        static int AngleToMotorValue(double angle);
+        int AngleToMotorValue(double angle);
     };
 
     enum CommandAction
@@ -150,6 +155,10 @@ namespace tsw::io
         int CameraFrameWidth;
         int CameraFrameHeight;
         uint LogFlags;
+        int MinAngle;
+        int MaxAngle;
+        int MinStep;
+        int MaxStep;
         void Load(string settingsFile);
 
     private:

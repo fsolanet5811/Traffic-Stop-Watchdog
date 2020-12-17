@@ -22,6 +22,12 @@ CameraMotionController::CameraMotionController(FlirCamera& camera, OfficerLocato
     _lastSeen.foundOfficer = false;
     _searchState = NotSearching;
     _isGuidingCameraMotion = false;
+
+    // Set the default angles/steps.
+    MinAngle = -360;
+    MaxAngle = 360;
+    MinStep = -1000;
+    MaxStep = 1000;
 }
 
 void CameraMotionController::StartCameraMotionGuidance()
@@ -136,17 +142,13 @@ void CameraMotionController::OnLivefeedImageReceived(LiveFeedCallbackArgs args)
 
 int CameraMotionController::AngleToMotorValue(double angle)
 {
-    // Get a value between -1 and 1 for how close this guy is to +-360 degrees.
-    double angleProp = angle / 360;
+    // Get a value between 0 and 1 for how close to the max angle our given angle is.
+    // 1 represents the max angle and 0 represents the min angle.
+    // Technically if our value is outside the bounds, this number will be outside [0, 1]
+    double angleProp = (angle - MinAngle) / (MaxAngle - MinAngle);
 
     // Now we can multiply this by the highest 3 byte positive value that has a negative value in 3 bytes (2^23 - 1).
-    return (int)(angleProp * GetMaxValue());
-}
-
-int CameraMotionController::GetMaxValue()
-{
-    // The highest 3 byte positive value that has a negative value in 3 bytes (2^23 - 1).
-    return 0x7fffff;
+    return (int)(MinStep + angleProp * (MaxStep - MinStep));
 }
 
 void CameraMotionController::OfficerSearch()

@@ -41,6 +41,10 @@ void Settings::Load(string settingsFile)
     CameraFrameRate = doc["CameraFrameRate"].GetDouble();
     CameraFrameHeight = doc["CameraFrameHeight"].GetInt();
     CameraFrameWidth = doc["CameraFrameWidth"].GetInt();
+    MinAngle = doc["MinAngle"].GetInt();
+    MaxAngle = doc["MaxAngle"].GetInt();
+    MinStep = doc["MinStep"].GetInt();
+    MaxStep = doc["MaxStep"].GetInt();
 
     // Get the log settings.
     LogFlags = 0;

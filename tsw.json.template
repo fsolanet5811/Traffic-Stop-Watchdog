@@ -16,6 +16,10 @@
     "CameraFrameRate": 25.0,
     "CameraFrameHeight": 480,
     "CameraFrameWidth": 720,
+    "MinAngle": -360,
+    "MaxAngle": 360,
+    "MinStep": -1000,
+    "MaxStep": 1000,
     "LogFlags":
     {
         "Error": true,
@@ -23,7 +27,7 @@
         "Information": true,
         "Frames": false,
         "Officers": false,
-        "Movements": false,
+        "Movements": true,
         "Recording": false,
         "RawSerial": false,
         "DeviceSerial": false,
