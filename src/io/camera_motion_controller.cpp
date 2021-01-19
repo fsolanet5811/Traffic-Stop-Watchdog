@@ -110,9 +110,11 @@ void CameraMotionController::SendMoveCommand(uchar specifierByte, double horizon
             // There was a fault in the motors' last movement.
             Log("Motors returned FAULT!", Error);
         }
-
-        // The byte was a success byte, just read another one.
-        Log("MOve command success response read", Acknowledge);
+        else
+        {
+            // The byte was hopefully a success byte, just read another one.
+            Log("Move command success response read", Acknowledge);
+        }
     }
     
 }
