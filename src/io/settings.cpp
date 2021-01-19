@@ -41,10 +41,8 @@ void Settings::Load(string settingsFile)
     CameraFrameRate = doc["CameraFrameRate"].GetDouble();
     CameraFrameHeight = doc["CameraFrameHeight"].GetInt();
     CameraFrameWidth = doc["CameraFrameWidth"].GetInt();
-    MinAngle = doc["MinAngle"].GetInt();
-    MaxAngle = doc["MaxAngle"].GetInt();
-    MinStep = doc["MinStep"].GetInt();
-    MaxStep = doc["MaxStep"].GetInt();
+    PanConfig = ReadMotorConfig(doc, "PanConfig");
+    TiltConfig = ReadMotorConfig(doc, "TiltConfig");
 
     // Get the log settings.
     LogFlags = 0;
@@ -71,4 +69,21 @@ Vector2 Settings::ReadVector2(Document& doc, string vectorName)
 bool Settings::ReadLogFlag(Document& doc, string flagName)
 {
     return doc["LogFlags"][flagName.c_str()].GetBool();
+}
+
+Bounds Settings::ReadBounds(Document& doc, string boundsName)
+{
+    Bounds b;
+    b.max = doc[boundsName.c_str()]["Max"].GetInt();
+    b.min = doc[boundsName.c_str()]["Min"].GetInt();
+}
+
+MotorConfig Settings::ReadMotorConfig(Document& doc, string motorConfigName)
+{
+    MotorConfig mc;
+    mc.angleBounds.max = doc[motorConfigName.c_str()]["AngleBounds"]["Max"].GetInt();
+    mc.angleBounds.min = doc[motorConfigName.c_str()]["AngleBounds"]["Min"].GetInt();
+    mc.stepBounds.max = doc[motorConfigName.c_str()]["StepBounds"]["Max"].GetInt();
+    mc.stepBounds.min = doc[motorConfigName.c_str()]["StepBounds"]["Min"].GetInt();
+    return mc;
 }

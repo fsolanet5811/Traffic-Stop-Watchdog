@@ -64,7 +64,7 @@ void FlirCamera::Connect(string serialNumber)
     // Object detection settings.
     _camera->ChunkEnable = true;
     _camera->ChunkModeActive = true;
-    _camera->RgbTransformLightSource = RgbTransformLightSource_Tungsten2800K;
+    _camera->RgbTransformLightSource = RgbTransformLightSource_General;
 }
 
 double FlirCamera::GetDeviceTemperature()
@@ -91,6 +91,11 @@ void FlirCamera::SetFrameRate(double hertz)
 {
     _camera->AcquisitionFrameRateEnable = true;
     _camera->AcquisitionFrameRate = hertz;
+}
+
+void FlirCamera::SetFilter(RgbTransformLightSourceEnums filter)
+{
+    _camera->RgbTransformLightSource = filter;
 }
 
 void FlirCamera::StartLiveFeed()

@@ -19,21 +19,32 @@ CameraMotionController::CameraMotionController(FlirCamera& camera, OfficerLocato
     VerticalFov = 34.6;
 
     // By deafult, we did not find an officer.
-    _lastSeen.foundOfficer = false;
-    _searchState = NotSearching;
+    ResetSearchState();
     _isGuidingCameraMotion = false;
 
     // Set the default angles/steps.
-    MinAngle = -360;
-    MaxAngle = 360;
-    MinStep = -1000;
-    MaxStep = 1000;
+    MotorConfig def;
+    def.angleBounds.min = -360;
+    def.angleBounds.max = 360;
+    def.stepBounds.min = -1000;
+    def.stepBounds.max = 1000;
+    PanConfig = def;
+    TiltConfig = def;
+}
+
+void CameraMotionController::ResetSearchState()
+{
+    _lastSeen.foundOfficer = false;
+    _searchState = NotSearching;
 }
 
 void CameraMotionController::StartCameraMotionGuidance()
 {
     if(!IsGuidingCameraMotion())
     {
+        // Activate the motors.
+        _commandPort->WriteToDevice(0x89);
+
         _isGuidingCameraMotion = true;
         _cameraLivefeedCallbackKey = _camera->RegisterLiveFeedCallback(bind(&CameraMotionController::OnLivefeedImageReceived, this, placeholders::_1));
     }
@@ -44,7 +55,12 @@ void CameraMotionController::StopCameraMotionGuidance()
     if(IsGuidingCameraMotion())
     {
         _camera->UnregisterLiveFeedCallback(_cameraLivefeedCallbackKey);
+
+        // Deactivate the motors.
+        _commandPort->WriteToDevice(0x8a);
+
         _isGuidingCameraMotion = false;
+        ResetSearchState();
     }
 }
 
@@ -56,8 +72,8 @@ bool CameraMotionController::IsGuidingCameraMotion()
 void CameraMotionController::SendMoveCommand(uchar specifierByte, double horizontal, double vertical, string moveName)
 {
     // Calculate the motor values for each of these.
-    int horizontalMotor = AngleToMotorValue(horizontal);
-    int verticalMotor = AngleToMotorValue(vertical);
+    int horizontalMotor = AngleToMotorValue(horizontal, PanConfig);
+    int verticalMotor = AngleToMotorValue(vertical, TiltConfig);
     
     // The vertical bytes go after the horizontal.
     vector<uchar> bytes(7);
@@ -140,15 +156,13 @@ void CameraMotionController::OnLivefeedImageReceived(LiveFeedCallbackArgs args)
     
 }
 
-int CameraMotionController::AngleToMotorValue(double angle)
+int CameraMotionController::AngleToMotorValue(double angle, MotorConfig config)
 {
     // Get a value between 0 and 1 for how close to the max angle our given angle is.
     // 1 represents the max angle and 0 represents the min angle.
     // Technically if our value is outside the bounds, this number will be outside [0, 1]
-    double angleProp = (angle - MinAngle) / (MaxAngle - MinAngle);
-
-    // Now we can multiply this by the highest 3 byte positive value that has a negative value in 3 bytes (2^23 - 1).
-    return (int)(MinStep + angleProp * (MaxStep - MinStep));
+    double angleProp = (angle - config.angleBounds.min) / (config.angleBounds.max - config.angleBounds.min);
+    return (int)(config.stepBounds.min + angleProp * (config.stepBounds.max - config.stepBounds.min));
 }
 
 void CameraMotionController::OfficerSearch()

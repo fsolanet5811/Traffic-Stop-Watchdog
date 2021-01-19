@@ -9,7 +9,7 @@ CommandAgent::CommandAgent(DeviceSerialPort& commandPort)
 
 Command* CommandAgent::ReadCommand(Device device)
 {
-    Log("Reading command from " + device, DeviceSerial);
+    Log("Reading command from " + to_string(device), DeviceSerial);
 
     // Grab a message from the device serial port.
     DeviceMessage message = _commandPort->ReadFromDevice(device);
@@ -23,14 +23,14 @@ Command* CommandAgent::ReadCommand(Device device)
     c->action = action;
     c->args = message.bytes;
 
-    Log("Command read from " + device, DeviceSerial);
+    Log("Command read from " + to_string(device), DeviceSerial);
 
     return c;
 }
 
 void CommandAgent::SendCommand(Device device, Command* command)
 {
-    Log("Sending Command to " + device, DeviceSerial);
+    Log("Sending Command to " + to_string(device), DeviceSerial);
     // We gotta construct the command byte from the action, device, and number of bytes.
     // They better have no more than 7 bytes in their command!
     if(command->args.size() > 7)
@@ -44,7 +44,7 @@ void CommandAgent::SendCommand(Device device, Command* command)
     bytes.insert(bytes.begin(), cByte);
 
     _commandPort->WriteToDevice(device, bytes);
-    Log(string("Command sent to " + device) + ". Waiting for acknowledge", DeviceSerial);
+    Log(string("Command sent to " + to_string(device)) + ". Waiting for acknowledge", DeviceSerial);
 
     // Wait for the acknowledgement.
     _commandPort->ReadFromDevice(device);

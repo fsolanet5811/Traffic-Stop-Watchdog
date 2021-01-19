@@ -58,6 +58,7 @@ namespace tsw::imaging
         uint RegisterLiveFeedCallback(function<void(LiveFeedCallbackArgs)> callback);
         void UnregisterLiveFeedCallback(uint callbackKey);
         ImagePtr CaptureImage();
+        void SetFilter(RgbTransformLightSourceEnums filter);
 
     private:
         SystemPtr _system;

@@ -61,6 +61,18 @@ namespace tsw::io
         void Gather();
     };
 
+    struct Bounds
+    {
+        int min;
+        int max;
+    };
+
+    struct MotorConfig
+    {
+        Bounds angleBounds;
+        Bounds stepBounds;
+    };
+
     class CameraMotionController
     {
     public:
@@ -69,10 +81,8 @@ namespace tsw::io
         double HorizontalFov;
         Vector2 HomeAngles;
         uint CameraFramesToSkip;
-        int MinAngle;
-        int MaxAngle;
-        int MinStep;
-        int MaxStep;
+        MotorConfig PanConfig;
+        MotorConfig TiltConfig;
         void StartCameraMotionGuidance();
         void StopCameraMotionGuidance();
         bool IsGuidingCameraMotion();
@@ -100,10 +110,11 @@ namespace tsw::io
         OfficerSearchState _searchState;
         OfficerDirection _lastSeen;
         
+        void ResetSearchState();
         void SendMoveCommand(uchar specifierByte, double horizontal, double vertical, string moveName);
         void CheckLastSeen();
         void OnLivefeedImageReceived(LiveFeedCallbackArgs args);
-        int AngleToMotorValue(double angle);
+        static int AngleToMotorValue(double angle, MotorConfig config);
     };
 
     enum CommandAction
@@ -155,15 +166,15 @@ namespace tsw::io
         int CameraFrameWidth;
         int CameraFrameHeight;
         uint LogFlags;
-        int MinAngle;
-        int MaxAngle;
-        int MinStep;
-        int MaxStep;
+        MotorConfig PanConfig;
+        MotorConfig TiltConfig;
         void Load(string settingsFile);
 
     private:
         static Vector2 ReadVector2(Document& doc, string vectorName);
         static bool ReadLogFlag(Document& doc, string flagName);
+        static Bounds ReadBounds(Document& doc, string boundsName);
+        static MotorConfig ReadMotorConfig(Document& doc, string motorConfigName);
     };
 
 

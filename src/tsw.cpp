@@ -96,10 +96,8 @@ int main(int argc, char* argv[])
     officerLocator.SafeRegionProportion = settings.SafeRegionProportion;
     CameraMotionController motionController(*camera, officerLocator, commandPort);
     motionController.CameraFramesToSkip = settings.CameraFramesToSkipMoving;
-    motionController.MinAngle = settings.MinAngle;
-    motionController.MaxAngle = settings.MaxAngle;
-    motionController.MinStep = settings.MinStep;
-    motionController.MaxStep = settings.MaxStep;
+    motionController.PanConfig = settings.PanConfig;
+    motionController.TiltConfig = settings.TiltConfig;
 
     // Now here comes the actual processing.
     // For now, if it messes up, we will just display an error and 
@@ -124,13 +122,13 @@ int main(int argc, char* argv[])
 
                 case StopOfficerTracking:
                     Log("Stopping officer tracking", Information | DeviceSerial | Recording | Officers);
+                    camera->StopLiveFeed();
                     motionController.StopCameraMotionGuidance();
                     recorder.StopRecording();
-                    camera->StopLiveFeed();
                     break;
 
                 default:
-                    Log("Unimplemented command " + command->action, tsw::io::Error | DeviceSerial);
+                    Log("Unimplemented command " + to_string(command->action), tsw::io::Error | DeviceSerial);
             }
 
             // Gotta dealocate!
