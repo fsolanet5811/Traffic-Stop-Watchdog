@@ -16,10 +16,32 @@
     "CameraFrameRate": 25.0,
     "CameraFrameHeight": 480,
     "CameraFrameWidth": 720,
-    "MinAngle": -360,
-    "MaxAngle": 360,
-    "MinStep": -1000,
-    "MaxStep": 1000,
+    "PanConfig":
+    {
+        "AngleBounds":
+        {
+            "Min": -360,
+            "Max": 360
+        },
+        "StepBounds":
+        {
+            "Min": -1000,
+            "Max": 1000
+        }
+    },
+    "TiltConfig":
+    {
+        "AngleBounds":
+        {
+            "Min": -360,
+            "Max": 360
+        },
+        "StepBounds":
+        {
+            "Min": -1000,
+            "Max": 1000
+        }
+    },
     "LogFlags":
     {
         "Error": true,
