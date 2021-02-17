@@ -63,9 +63,25 @@ void CommandAgent::SendResponse(vector<uchar> formattedResponse)
     _commandPort->WriteToDevice(formattedResponse);
 }
 
+bool CommandAgent::TryReadResponse(Device device, vector<uchar>* readResponse)
+{
+    DeviceMessage message;
+    if(_commandPort->TryReadFromDevice(device, &message))
+    {
+        /// We read a response. Give them a reference to the bytes.
+        *readResponse = message.bytes;
+        return true;
+    }
+
+    // No response found.
+    return false;
+}
+
 void CommandAgent::SendResponse(uchar formattedResponse)
 {
-    _commandPort->WriteToDevice(formattedResponse);
+    vector<uchar> response;
+    response.push_back(formattedResponse);
+    SendResponse(response);
 }
 
 vector<uchar> CommandAgent::ReadResponse(Device device)
@@ -86,16 +102,7 @@ vector<uchar> CommandAgent::ReadResponse(Device device)
     }
 }
 
-bool CommandAgent::TryReadResponse(Device device, vector<uchar>* readResponse)
+CommandAgent::~CommandAgent()
 {
-    DeviceMessage message;
-    if(_commandPort->TryReadFromDevice(device, &message))
-    {
-        /// We read a response. Give them a reference to the bytes.
-        *readResponse = message.bytes;
-        return true;
-    }
-
-    // No response found.
-    return false;
+    delete _commandPort;
 }

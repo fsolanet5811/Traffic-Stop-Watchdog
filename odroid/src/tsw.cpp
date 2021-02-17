@@ -6,17 +6,17 @@
 using namespace tsw::imaging;
 using namespace tsw::io;
 
-SerialPort* ConnectToDevice(string deviceSerialPath)
+DeviceSerialPort* ConnectToSerialPort(string serialPath)
 {
     SerialPort* rawCommandPort = new SerialPort();
     while(true)
     {
         try
         {
-            Log("Opening device serial port on path " + deviceSerialPath, Debug | DeviceSerial);
-            rawCommandPort->Open(deviceSerialPath);
+            Log("Opening device serial port on path " + serialPath, Debug | DeviceSerial);
+            rawCommandPort->Open(serialPath);
             Log("Device serial port opened", Information | DeviceSerial);
-            break;
+            return new DeviceSerialPort(*rawCommandPort);
         }
         catch(exception e)
         {
@@ -26,8 +26,19 @@ SerialPort* ConnectToDevice(string deviceSerialPath)
         // Wait a bit before connecting again.
         sleep(5);
     }
-    
-    return rawCommandPort;
+}
+
+CommandAgent* ConnectToDeviceAdapter(string deviceSerialPath)
+{
+    DeviceSerialPort* commandPort = ConnectToSerialPort(deviceSerialPath);
+    return new CommandAgent(*commandPort);
+}
+
+MultiPortCommandAgent* ConnectToMultiDevice(string handheldSerialPath, string motorsSerialPath)
+{
+    DeviceSerialPort* handheldCommandPort = ConnectToSerialPort(handheldSerialPath);
+    DeviceSerialPort* motorsCommandPort = ConnectToSerialPort(motorsSerialPath);
+    return new MultiPortCommandAgent(*handheldCommandPort, *motorsCommandPort);
 }
 
 FlirCamera* ConnectToCamera(string cameraSerialNumber)
@@ -78,10 +89,22 @@ int main(int argc, char* argv[])
     ConfigureLog(settings.LogFlags);
 
     // Connect to the device port.
-    SerialPort* rawCommandPort = ConnectToDevice(settings.DeviceSerialPath);
-    DeviceSerialPort commandPort(*rawCommandPort);
-    commandPort.StartGathering();
-    CommandAgent agent(commandPort);
+    DeviceSerialPort* portThatCanTalkToMotors;
+    CommandAgent* agent;
+    if(settings.UseDeviceAdapter)
+    {
+        portThatCanTalkToMotors = ConnectToSerialPort(settings.DeviceSerialPath);
+        agent = new CommandAgent(*portThatCanTalkToMotors);
+    }
+    else
+    {
+        portThatCanTalkToMotors = ConnectToSerialPort(settings.MotorsSerialPath);
+        DeviceSerialPort* handheldPort = ConnectToSerialPort(settings.HandheldSerialPath);
+        handheldPort->StartGathering();
+        agent = new MultiPortCommandAgent(*handheldPort, *portThatCanTalkToMotors);
+    }
+
+    portThatCanTalkToMotors->StartGathering();
 
     // Connect to the camera and attach the recorder.
     FlirCamera* camera = ConnectToCamera(settings.CameraSerialNumber);
@@ -94,7 +117,7 @@ int main(int argc, char* argv[])
     ConfidenceOfficerLocator officerLocator(settings.OfficerClassId);
     officerLocator.TargetRegionProportion = settings.TargetRegionProportion;
     officerLocator.SafeRegionProportion = settings.SafeRegionProportion;
-    CameraMotionController motionController(*camera, officerLocator, commandPort);
+    CameraMotionController motionController(*camera, officerLocator, *portThatCanTalkToMotors);
     motionController.CameraFramesToSkip = settings.CameraFramesToSkipMoving;
     motionController.PanConfig = settings.PanConfig;
     motionController.TiltConfig = settings.TiltConfig;
@@ -107,8 +130,8 @@ int main(int argc, char* argv[])
         {
             // Read a command from the handheld device and acknowledge it.
             Log("Waiting for command", Information | DeviceSerial);
-            Command* command = agent.ReadCommand(Handheld);
-            agent.AcknowledgeReceived(Handheld);
+            Command* command = agent->ReadCommand(Handheld);
+            agent->AcknowledgeReceived(Handheld);
 
             // See what the command wants us to do.
             switch(command->action)
@@ -140,10 +163,6 @@ int main(int argc, char* argv[])
         Log("An error occured:\n" + string(ex.what()), tsw::io::Error);
     }
     
-    // Stop all of the devices.
-    commandPort.StopGathering();
-    rawCommandPort->Close();
-
     if(camera->IsLiveFeedOn())
     {
         camera->StopLiveFeed();
@@ -158,6 +177,8 @@ int main(int argc, char* argv[])
     {
         motionController.StopCameraMotionGuidance();
     }
+
+    delete agent;
 
     return 0;  
 }

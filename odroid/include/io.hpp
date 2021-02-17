@@ -22,6 +22,7 @@ namespace tsw::io
         int Write(unsigned char* data, int bytesToWrite);
         void Clear();
         void Close();
+        ~SerialPort();
     private:
         int _port;
         mutex _portKey;
@@ -51,6 +52,7 @@ namespace tsw::io
         void WriteToDevice(vector<uchar> formattedData);
         void WriteToDevice(uchar formattedByte);
         bool TryReadFromDevice(Device device, DeviceMessage* readMessage);
+        ~DeviceSerialPort();
 
     private:
         bool _isGathering;
@@ -139,16 +141,36 @@ namespace tsw::io
     {
     public:
         CommandAgent(DeviceSerialPort& commandPort);
-        Command* ReadCommand(Device device);
+        virtual Command* ReadCommand(Device device);
+        virtual bool TryReadResponse(Device device, vector<uchar>* readResponse);
+        virtual void SendResponse(vector<uchar> formattedResponse);
+        virtual void SendCommand(Device device, Command* command);
+        virtual void AcknowledgeReceived(Device device);
         vector<uchar> ReadResponse(Device device);
-        bool TryReadResponse(Device device, vector<uchar>* readResponse);
-        void SendResponse(vector<uchar> formattedResponse);
         void SendResponse(uchar formattedResponse);
-        void SendCommand(Device device, Command* command);
-        void AcknowledgeReceived(Device device);
+        virtual ~CommandAgent();
+
+    protected:
+        DeviceSerialPort* _commandPort;
+    };
+
+    
+
+    class MultiPortCommandAgent : public CommandAgent
+    {
+    public:
+        MultiPortCommandAgent(DeviceSerialPort& handheldPort, DeviceSerialPort& motorsPort);
+        Command* ReadCommand(Device device) override;
+        bool TryReadResponse(Device device, vector<uchar>* readResponse) override;
+        void SendResponse(vector<uchar> formattedResponse) override;
+        void SendCommand(Device device, Command* command) override;
+        void AcknowledgeReceived(Device device) override;
+        ~MultiPortCommandAgent() override;
 
     private:
-        DeviceSerialPort* _commandPort;
+        DeviceSerialPort* _handheldPort;
+        DeviceSerialPort* _motorsPort;
+        DeviceSerialPort* GetDeviceSerialPort(Device device);
     };
 
     class Settings
@@ -157,7 +179,10 @@ namespace tsw::io
         Settings();
         Settings(string settingsFile);
         string DeviceSerialPath;
+        string MotorsSerialPath;
+        string HandheldSerialPath;
         string CameraSerialNumber;
+        bool UseDeviceAdapter;
         short OfficerClassId;
         Vector2 TargetRegionProportion;
         Vector2 SafeRegionProportion;

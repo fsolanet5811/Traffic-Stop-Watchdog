@@ -108,3 +108,8 @@ void SerialPort::Close()
 {
     close(_port);
 }
+
+SerialPort::~SerialPort()
+{
+    Close();
+}

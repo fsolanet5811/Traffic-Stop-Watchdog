@@ -155,3 +155,12 @@ bool DeviceSerialPort::TryReadFromDevice(Device device, DeviceMessage* readMessa
     _bufferKey.unlock();
     return false;
 }
+
+DeviceSerialPort::~DeviceSerialPort()
+{
+    if(IsGathering())
+    {
+        StopGathering();
+    }
+    delete _port;
+}

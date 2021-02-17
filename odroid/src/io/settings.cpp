@@ -33,7 +33,10 @@ void Settings::Load(string settingsFile)
     
     // Now we can populate our settings.
     DeviceSerialPath = doc["DeviceSerialPath"].GetString();
+    MotorsSerialPath = doc["MotorsSerialPath"].GetString();
+    HandheldSerialPath = doc["HandheldSerialPath"].GetString();
     CameraSerialNumber = doc["CameraSerialNumber"].GetString();
+    UseDeviceAdapter = doc["UseDeviceAdapter"].GetBool();
     OfficerClassId = doc["OfficerClassId"].GetInt();
     TargetRegionProportion = ReadVector2(doc, "TargetRegionProportion");
     SafeRegionProportion = ReadVector2(doc, "SafeRegionProportion");
