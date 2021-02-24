@@ -2,9 +2,11 @@
 #include "io.hpp"
 #include "Spinnaker.h"
 #include <fstream>
+#include "settings.hpp"
 
 using namespace tsw::imaging;
 using namespace tsw::io;
+using namespace tsw::io::settings;
 
 DeviceSerialPort* ConnectToSerialPort(string serialPath)
 {
@@ -83,7 +85,7 @@ int main(int argc, char* argv[])
     string startingDir = thisFile.substr(0, thisFile.find_last_of('/'));
     string settingsFile = startingDir + "/tsw.json";
     Log("Loading settings from " + settingsFile, Information);
-    Settings settings(settingsFile);
+    TswSettings settings(settingsFile);
     Log("Settings loaded", Information);
     PrintFile(settingsFile);
     ConfigureLog(settings.LogFlags);

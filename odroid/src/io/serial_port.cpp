@@ -16,6 +16,7 @@ SerialPort::SerialPort()
 void SerialPort::Open(string devicePath)
 {
     // Attempt to connect to the device.
+    Log("Opening serial port on " + devicePath, RawSerial);
     int res = open(devicePath.c_str(), O_RDWR);
 
     // See if we made a successful connection.
@@ -23,7 +24,7 @@ void SerialPort::Open(string devicePath)
     {
         throw runtime_error("Could not connect to device " + devicePath);
     }
-
+    Log("Found port on " + to_string(res), RawSerial);
     _port = res;
 
     // Now configure the connection.
@@ -71,10 +72,12 @@ void SerialPort::Open(string devicePath)
     }
 
     // Ok now we are good.
+    Log("Port opened.", RawSerial);
 }
 
 int SerialPort::Read(unsigned char* buffer, int bytesToRead)
 {
+    Log("Trying to read " + to_string(bytesToRead) + " bytes.", RawSerial);
     int bytesRead = read(_port, buffer, bytesToRead);
 
     // Make sure it worked.
@@ -83,11 +86,14 @@ int SerialPort::Read(unsigned char* buffer, int bytesToRead)
         throw runtime_error("Failed to read bytes.");
     }
 
+    Log("Read " + to_string(bytesToRead) + " bytes.", RawSerial);
+
     return bytesRead;
 }
 
 int SerialPort::Write(unsigned char* data, int bytesToWrite)
 {
+    Log("Trying to write " + to_string(bytesToWrite) + " bytes.", RawSerial);
     int bytesWritten = write(_port, data, bytesToWrite);
 
     if(bytesWritten == -1)
@@ -95,6 +101,7 @@ int SerialPort::Write(unsigned char* data, int bytesToWrite)
         throw runtime_error("Failed to write bytes.");
     }
 
+    Log("Wrote " + to_string(bytesToWrite) + " bytes.", RawSerial);
     return bytesWritten;
 }
 

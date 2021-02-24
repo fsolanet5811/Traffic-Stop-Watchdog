@@ -75,10 +75,30 @@ namespace tsw::io
         Bounds stepBounds;
     };
 
+    class MotorController
+    {
+    public:
+        MotorController(DeviceSerialPort& commandPort, MotorConfig panConfig, MotorConfig tiltConfig);
+        MotorConfig PanConfig;
+        MotorConfig TiltConfig;
+        void SendSyncRelativeMoveCommand(double horizontal, double vertical);
+        void SendAsyncRelativeMoveCommand(double horizontal, double vertical);
+        void SendSyncAbsoluteMoveCommand(double horizontal, double vertical);
+        void SendAsyncAbsoluteMoveCommand(double horizontal, double vertical);
+        void Activate();
+        void Deactivate();
+        bool TryReadMessage(DeviceMessage* message);
+
+    private:
+        DeviceSerialPort* _commandPort;
+        void SendMoveCommand(uchar specifierByte, double horizontal, double vertical, string moveName);
+        static int AngleToMotorValue(double angle, MotorConfig config);
+    };
+
     class CameraMotionController
     {
     public:
-        CameraMotionController(FlirCamera& camera, OfficerLocator& officerLocator, DeviceSerialPort& commandPort);
+        CameraMotionController(FlirCamera& camera, OfficerLocator& officerLocator, MotorController& motorController);
         double VerticalFov;
         double HorizontalFov;
         Vector2 HomeAngles;
@@ -90,10 +110,6 @@ namespace tsw::io
         bool IsGuidingCameraMotion();
         void OfficerSearch();
         void GoToHome();
-        void SendSyncRelativeMoveCommand(double horizontal, double vertical);
-        void SendAsyncRelativeMoveCommand(double horizontal, double vertical);
-        void SendSyncAbsoluteMoveCommand(double horizontal, double vertical);
-        void SendAsyncAbsoluteMoveCommand(double horizontal, double vertical);
         static int GetMaxValue();
 
     private:
@@ -106,7 +122,7 @@ namespace tsw::io
         };
         FlirCamera* _camera;
         OfficerLocator* _officerLocator;
-        DeviceSerialPort* _commandPort;
+        MotorController* _motorController;
         bool _isGuidingCameraMotion;
         uint _cameraLivefeedCallbackKey;
         OfficerSearchState _searchState;
@@ -116,7 +132,7 @@ namespace tsw::io
         void SendMoveCommand(uchar specifierByte, double horizontal, double vertical, string moveName);
         void CheckLastSeen();
         void OnLivefeedImageReceived(LiveFeedCallbackArgs args);
-        static int AngleToMotorValue(double angle, MotorConfig config);
+        
     };
 
     enum CommandAction
@@ -173,34 +189,7 @@ namespace tsw::io
         DeviceSerialPort* GetDeviceSerialPort(Device device);
     };
 
-    class Settings
-    {
-    public:
-        Settings();
-        Settings(string settingsFile);
-        string DeviceSerialPath;
-        string MotorsSerialPath;
-        string HandheldSerialPath;
-        string CameraSerialNumber;
-        bool UseDeviceAdapter;
-        short OfficerClassId;
-        Vector2 TargetRegionProportion;
-        Vector2 SafeRegionProportion;
-        int CameraFramesToSkipMoving;
-        double CameraFrameRate;
-        int CameraFrameWidth;
-        int CameraFrameHeight;
-        uint LogFlags;
-        MotorConfig PanConfig;
-        MotorConfig TiltConfig;
-        void Load(string settingsFile);
-
-    private:
-        static Vector2 ReadVector2(Document& doc, string vectorName);
-        static bool ReadLogFlag(Document& doc, string flagName);
-        static Bounds ReadBounds(Document& doc, string boundsName);
-        static MotorConfig ReadMotorConfig(Document& doc, string motorConfigName);
-    };
+    
 
 
     enum LogFlag
