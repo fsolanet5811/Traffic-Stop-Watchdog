@@ -10,7 +10,6 @@ void Settings::LoadJsonFile(Document* doc, string jsonFile)
     FILE* settingsFileHandle = fopen(jsonFile.c_str(), "r");
     char readBuffer[65536];
     FileReadStream settingsStream(settingsFileHandle, readBuffer, sizeof(readBuffer));
-    Document doc;
 
     // Read in the file.
     doc->ParseStream(settingsStream);
