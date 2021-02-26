@@ -157,41 +157,20 @@ namespace tsw::io
     {
     public:
         CommandAgent(DeviceSerialPort& commandPort);
-        virtual Command* ReadCommand(Device device);
-        virtual bool TryReadResponse(Device device, vector<uchar>* readResponse);
-        virtual void SendResponse(vector<uchar> formattedResponse);
-        virtual void SendCommand(Device device, Command* command);
-        virtual void AcknowledgeReceived(Device device);
+        Command* ReadCommand(Device device);
+        bool TryReadResponse(Device device, vector<uchar>* readResponse);
+        void SendResponse(vector<uchar> formattedResponse);
+        void SendCommand(Device device, Command* command);
+        void AcknowledgeReceived(Device device);
         vector<uchar> ReadResponse(Device device);
         void SendResponse(uchar formattedResponse);
-        virtual ~CommandAgent();
+        ~CommandAgent();
 
     protected:
         DeviceSerialPort* _commandPort;
     };
 
     
-
-    class MultiPortCommandAgent : public CommandAgent
-    {
-    public:
-        MultiPortCommandAgent(DeviceSerialPort& handheldPort, DeviceSerialPort& motorsPort);
-        Command* ReadCommand(Device device) override;
-        bool TryReadResponse(Device device, vector<uchar>* readResponse) override;
-        void SendResponse(vector<uchar> formattedResponse) override;
-        void SendCommand(Device device, Command* command) override;
-        void AcknowledgeReceived(Device device) override;
-        ~MultiPortCommandAgent() override;
-
-    private:
-        DeviceSerialPort* _handheldPort;
-        DeviceSerialPort* _motorsPort;
-        DeviceSerialPort* GetDeviceSerialPort(Device device);
-    };
-
-    
-
-
     enum LogFlag
     {
         Error = 0b1,

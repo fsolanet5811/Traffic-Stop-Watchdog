@@ -2,14 +2,14 @@
 
 using namespace tsw::io::settings;
 
-MotorTestSettings::MotorTestSettings() { }
+MotorSettings::MotorSettings() { }
 
-MotorTestSettings::MotorTestSettings(string settingsFile)
+MotorSettings::MotorSettings(string settingsFile)
 {
     Load(settingsFile);
 }
 
-void MotorTestSettings::Load(string settingsFile)
+void MotorSettings::Load(string settingsFile)
 {
     Document doc;
     Settings::LoadJsonFile(&doc, settingsFile);

@@ -51,11 +51,11 @@ namespace tsw::io::settings
         static bool ReadLogFlag(Document& doc, string flagName);
     };
 
-    class MotorTestSettings : public Settings
+    class MotorSettings : public Settings
     {
     public:
-        MotorTestSettings();
-        MotorTestSettings(string settingsFile);
+        MotorSettings();
+        MotorSettings(string settingsFile);
         string MotorsSerialPath;
         MotorConfig PanConfig;
         MotorConfig TiltConfig;

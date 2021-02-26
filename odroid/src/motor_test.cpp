@@ -20,7 +20,7 @@ int main(int argc, char* argv[])
     string thisFile(argv[0]);
     string startingDir = thisFile.substr(0, thisFile.find_last_of('/'));
     string settingsFile = startingDir + "/motor_test.json";
-    MotorTestSettings settings(settingsFile);
+    MotorSettings settings(settingsFile);
     ConfigureLog(settings.LogFlags);
     SerialPort port;
 
@@ -29,6 +29,8 @@ int main(int argc, char* argv[])
     DeviceSerialPort devicePort(port);
     devicePort.StartGathering();
     MotorController motorController(devicePort, settings.PanConfig, settings.TiltConfig);
+
+    motorController.Activate();
 
     cout << "Sending move command Type = " << motionType << " H: " << horizontal << " V: " << vertical << endl;
     switch(motionType)

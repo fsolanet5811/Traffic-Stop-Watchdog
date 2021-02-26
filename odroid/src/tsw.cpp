@@ -30,19 +30,6 @@ DeviceSerialPort* ConnectToSerialPort(string serialPath)
     }
 }
 
-CommandAgent* ConnectToDeviceAdapter(string deviceSerialPath)
-{
-    DeviceSerialPort* commandPort = ConnectToSerialPort(deviceSerialPath);
-    return new CommandAgent(*commandPort);
-}
-
-MultiPortCommandAgent* ConnectToMultiDevice(string handheldSerialPath, string motorsSerialPath)
-{
-    DeviceSerialPort* handheldCommandPort = ConnectToSerialPort(handheldSerialPath);
-    DeviceSerialPort* motorsCommandPort = ConnectToSerialPort(motorsSerialPath);
-    return new MultiPortCommandAgent(*handheldCommandPort, *motorsCommandPort);
-}
-
 FlirCamera* ConnectToCamera(string cameraSerialNumber)
 {
     FlirCamera* camera = new FlirCamera();;
@@ -103,7 +90,7 @@ int main(int argc, char* argv[])
         portThatCanTalkToMotors = ConnectToSerialPort(settings.MotorsSerialPath);
         DeviceSerialPort* handheldPort = ConnectToSerialPort(settings.HandheldSerialPath);
         handheldPort->StartGathering();
-        agent = new MultiPortCommandAgent(*handheldPort, *portThatCanTalkToMotors);
+        agent = new CommandAgent(*handheldPort);
     }
 
     portThatCanTalkToMotors->StartGathering();
@@ -119,7 +106,10 @@ int main(int argc, char* argv[])
     ConfidenceOfficerLocator officerLocator(settings.OfficerClassId);
     officerLocator.TargetRegionProportion = settings.TargetRegionProportion;
     officerLocator.SafeRegionProportion = settings.SafeRegionProportion;
-    CameraMotionController motionController(*camera, officerLocator, *portThatCanTalkToMotors);
+
+    MotorController motorController(*portThatCanTalkToMotors, settings.PanConfig, settings.TiltConfig);
+
+    CameraMotionController motionController(*camera, officerLocator, motorController);
     motionController.CameraFramesToSkip = settings.CameraFramesToSkipMoving;
     motionController.PanConfig = settings.PanConfig;
     motionController.TiltConfig = settings.TiltConfig;
