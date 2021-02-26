@@ -86,7 +86,7 @@ int SerialPort::Read(unsigned char* buffer, int bytesToRead)
         throw runtime_error("Failed to read bytes.");
     }
 
-    Log("Read " + to_string(bytesToRead) + " bytes.", RawSerial);
+    Log("Read " + to_string(bytesRead) + " bytes.", RawSerial);
 
     return bytesRead;
 }
@@ -101,7 +101,7 @@ int SerialPort::Write(unsigned char* data, int bytesToWrite)
         throw runtime_error("Failed to write bytes.");
     }
 
-    Log("Wrote " + to_string(bytesToWrite) + " bytes.", RawSerial);
+    Log("Wrote " + to_string(bytesWritten) + " bytes.", RawSerial);
     return bytesWritten;
 }
 
