@@ -4,6 +4,7 @@
 #include "imaging.hpp"
 #include "rapidjson.h"
 #include "document.h"
+#include <termios.h>
 #include <future>
 
 using namespace Spinnaker;
@@ -16,7 +17,7 @@ namespace tsw::io
     class SerialPort
     {
     public:
-        SerialPort();
+        SerialPort(speed_t baudRate);
         void Open(string devicePath);
         int Read(unsigned char* buffer, int bytesToRead);
         int Write(unsigned char* data, int bytesToWrite);
@@ -24,6 +25,7 @@ namespace tsw::io
         void Close();
         ~SerialPort();
     private:
+	speed_t _baudRate;
         int _port;
         mutex _portKey;
     };
@@ -103,8 +105,6 @@ namespace tsw::io
         double HorizontalFov;
         Vector2 HomeAngles;
         uint CameraFramesToSkip;
-        MotorConfig PanConfig;
-        MotorConfig TiltConfig;
         void StartCameraMotionGuidance();
         void StopCameraMotionGuidance();
         bool IsGuidingCameraMotion();
