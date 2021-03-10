@@ -1,0 +1,73 @@
+{
+    "DeviceSerialConfig":
+    {
+        "Path": "/dev/ttyACM1",
+        "BaudRate": 115200
+    },
+    "HandheldSerialConfig":
+    {
+        "Path": "/dev/ttyACM1",
+        "BaudRate": 9600
+    },
+    "MotorsSerialConfig":
+    {
+        "Path": "/dev/ttyACM0",
+        "BaudRate": 115200
+    },
+    "UseDeviceAdapter": true,
+    "CameraSerialNumber": "20386745",
+    "OfficerClassId": 1,
+    "TargetRegionProportion":
+    {
+        "X": 0.2,
+        "Y": 0.15
+    },
+    "SafeRegionProportion":
+    {
+        "X": 0.5,
+        "Y": 0.3
+    },
+    "CameraFramesToSkipMoving": 5,
+    "CameraFrameRate": 25.0,
+    "CameraFrameHeight": 480,
+    "CameraFrameWidth": 720,
+    "PanConfig":
+    {
+        "AngleBounds":
+        {
+            "Min": -360,
+            "Max": 360
+        },
+        "StepBounds":
+        {
+            "Min": -1000,
+            "Max": 1000
+        }
+    },
+    "TiltConfig":
+    {
+        "AngleBounds":
+        {
+            "Min": -360,
+            "Max": 360
+        },
+        "StepBounds":
+        {
+            "Min": -1000,
+            "Max": 1000
+        }
+    },
+    "LogFlags":
+    {
+        "Error": true,
+        "Debug": true,
+        "Information": true,
+        "Frames": false,
+        "Officers": false,
+        "Movements": true,
+        "Recording": false,
+        "RawSerial": false,
+        "DeviceSerial": true,
+        "Acknowledge": false
+    }
+}
