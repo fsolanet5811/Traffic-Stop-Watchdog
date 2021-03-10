@@ -8,9 +8,10 @@
 using namespace tsw::io;
 using namespace std;
 
-SerialPort::SerialPort()
+SerialPort::SerialPort(speed_t baudRate)
 {
     _port = -1;
+    _baudRate = baudRate;
 }
 
 void SerialPort::Open(string devicePath)
@@ -61,8 +62,8 @@ void SerialPort::Open(string devicePath)
     tty.c_cc[VMIN] = 0;
 
     // Set in/out baud rate to be 115200
-    cfsetispeed(&tty, B115200);
-    cfsetospeed(&tty, B115200);
+    cfsetispeed(&tty, _baudRate);
+    cfsetospeed(&tty, _baudRate);
 
     // Save our current settings modifications.
     if(tcsetattr(_port, TCSANOW, &tty) != 0)

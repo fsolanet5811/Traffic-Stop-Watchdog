@@ -11,7 +11,7 @@ Vector2* ConfidenceOfficerLocator::GetDesiredOfficerLocation(ImagePtr image)
 {
     // Grab all the bounding boxes.
     vector<InferenceBoundingBox> boxes = GetOfficerLocations(image);
-    Log(string("Found " + boxes.size()) + " bounding boxes", Officers);
+    Log("Found " + to_string(boxes.size()) + " bounding boxes", Officers);
 
     // We are going to take the one with the most confidence.
     InferenceBoundingBox* bestBox = NULL;

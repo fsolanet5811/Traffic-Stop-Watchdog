@@ -36,6 +36,7 @@ void TswSettings::Load(string settingsFile)
     UseDeviceAdapter = doc["UseDeviceAdapter"].GetBool();
     OfficerClassId = doc["OfficerClassId"].GetInt();
     TargetRegionProportion = ReadVector2(doc, "TargetRegionProportion");
+    HomeAngles = ReadVector2(doc, "HomeAngles");
     SafeRegionProportion = ReadVector2(doc, "SafeRegionProportion");
     CameraFramesToSkipMoving = doc["CameraFramesToSkipMoving"].GetInt();
     CameraFrameRate = doc["CameraFrameRate"].GetDouble();

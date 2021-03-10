@@ -8,9 +8,9 @@ using namespace tsw::imaging;
 using namespace tsw::io;
 using namespace tsw::io::settings;
 
-DeviceSerialPort* ConnectToSerialPort(string serialPath)
+DeviceSerialPort* ConnectToSerialPort(string serialPath, speed_t baudRate)
 {
-    SerialPort* rawCommandPort = new SerialPort();
+    SerialPort* rawCommandPort = new SerialPort(baudRate);
     while(true)
     {
         try
@@ -82,13 +82,13 @@ int main(int argc, char* argv[])
     CommandAgent* agent;
     if(settings.UseDeviceAdapter)
     {
-        portThatCanTalkToMotors = ConnectToSerialPort(settings.DeviceSerialPath);
+        portThatCanTalkToMotors = ConnectToSerialPort(settings.DeviceSerialPath, B9600);
         agent = new CommandAgent(*portThatCanTalkToMotors);
     }
     else
     {
-        portThatCanTalkToMotors = ConnectToSerialPort(settings.MotorsSerialPath);
-        DeviceSerialPort* handheldPort = ConnectToSerialPort(settings.HandheldSerialPath);
+        portThatCanTalkToMotors = ConnectToSerialPort(settings.MotorsSerialPath, B115200);
+        DeviceSerialPort* handheldPort = ConnectToSerialPort(settings.HandheldSerialPath, B9600);
         handheldPort->StartGathering();
         agent = new CommandAgent(*handheldPort);
     }
@@ -111,8 +111,7 @@ int main(int argc, char* argv[])
 
     CameraMotionController motionController(*camera, officerLocator, motorController);
     motionController.CameraFramesToSkip = settings.CameraFramesToSkipMoving;
-    motionController.PanConfig = settings.PanConfig;
-    motionController.TiltConfig = settings.TiltConfig;
+    motionController.HomeAngles = settings.HomeAngles;
 
     // Now here comes the actual processing.
     // For now, if it messes up, we will just display an error and 
