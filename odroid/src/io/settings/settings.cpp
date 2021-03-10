@@ -57,7 +57,30 @@ uint Settings::ReadLogFlags(Document& doc, string logFlagsName)
     return logFlags;
 }
 
+SerialConfig Settings::ReadSerialConfig(Document& doc, string serialConfigName)
+{
+    SerialConfig sc;
+    sc.path = doc[serialConfigName.c_str()]["Path"].GetString();
+    sc.baudRate = ParseBaudRate(doc[serialConfigName.c_str()]["BaudRate"].GetInt());
+    return sc;
+}
+
 bool Settings::ReadLogFlag(Document& doc, string logFlagsName, string flagName)
 {
     return doc[logFlagsName.c_str()][flagName.c_str()].GetBool();
+}
+
+speed_t Settings::ParseBaudRate(int baudRate)
+{
+    switch(baudRate)
+    {
+        case 9600:
+            return B9600;
+
+        case 115200:
+            return B115200;
+
+        default:
+            throw runtime_error("Unimplemented baud rate: " + to_string(baudRate));
+    }
 }

@@ -77,6 +77,12 @@ namespace tsw::io
         Bounds stepBounds;
     };
 
+    struct SerialConfig
+    {
+        string path;
+        speed_t baudRate;
+    };
+
     class MotorController
     {
     public:

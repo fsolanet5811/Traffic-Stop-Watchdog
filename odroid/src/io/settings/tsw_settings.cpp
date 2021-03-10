@@ -29,9 +29,9 @@ void TswSettings::Load(string settingsFile)
     LoadJsonFile(&doc, settingsFile);
     
     // Now we can populate our settings.
-    DeviceSerialPath = doc["DeviceSerialPath"].GetString();
-    MotorsSerialPath = doc["MotorsSerialPath"].GetString();
-    HandheldSerialPath = doc["HandheldSerialPath"].GetString();
+    DeviceSerialConfig = ReadSerialConfig(doc, "DeviceSerialConfig");
+    MotorsSerialConfig = ReadSerialConfig(doc, "MotorsSerialConfig");
+    HandheldSerialConfig = ReadSerialConfig(doc, "HandheldSerialConfig");
     CameraSerialNumber = doc["CameraSerialNumber"].GetString();
     UseDeviceAdapter = doc["UseDeviceAdapter"].GetBool();
     OfficerClassId = doc["OfficerClassId"].GetInt();

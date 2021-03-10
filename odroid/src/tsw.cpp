@@ -82,13 +82,13 @@ int main(int argc, char* argv[])
     CommandAgent* agent;
     if(settings.UseDeviceAdapter)
     {
-        portThatCanTalkToMotors = ConnectToSerialPort(settings.DeviceSerialPath, B9600);
+        portThatCanTalkToMotors = ConnectToSerialPort(settings.DeviceSerialConfig.path, settings.DeviceSerialConfig.baudRate);
         agent = new CommandAgent(*portThatCanTalkToMotors);
     }
     else
     {
-        portThatCanTalkToMotors = ConnectToSerialPort(settings.MotorsSerialPath, B115200);
-        DeviceSerialPort* handheldPort = ConnectToSerialPort(settings.HandheldSerialPath, B9600);
+        portThatCanTalkToMotors = ConnectToSerialPort(settings.MotorsSerialConfig.path, settings.MotorsSerialConfig.baudRate);
+        DeviceSerialPort* handheldPort = ConnectToSerialPort(settings.HandheldSerialConfig.path, settings.HandheldSerialConfig.baudRate);
         handheldPort->StartGathering();
         agent = new CommandAgent(*handheldPort);
     }
@@ -139,6 +139,10 @@ int main(int argc, char* argv[])
                     camera->StopLiveFeed();
                     motionController.StopCameraMotionGuidance();
                     recorder.StopRecording();
+                    break;
+
+                case SendKeyword:
+                    Log("Received Keyword: " + string(command->args.begin(), command->args.end()), Information);
                     break;
 
                 default:
