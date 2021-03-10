@@ -1,20 +1,5 @@
 {
-    "DeviceSerialConfig":
-    {
-        "Path": "/dev/ttyACM1",
-        "BaudRate": 115200
-    },
-    "HandheldSerialConfig":
-    {
-        "Path": "/dev/ttyACM1",
-        "BaudRate": 9600
-    },
-    "MotorsSerialConfig":
-    {
-        "Path": "/dev/ttyACM0",
-        "BaudRate": 115200
-    },
-    "UseDeviceAdapter": true,
+    "DeviceSerialPath": "/dev/ttyACM1",
     "CameraSerialNumber": "20386745",
     "OfficerClassId": 1,
     "TargetRegionProportion":
@@ -67,7 +52,7 @@
         "Movements": true,
         "Recording": false,
         "RawSerial": false,
-        "DeviceSerial": true,
+        "DeviceSerial": false,
         "Acknowledge": false
     }
 }
