@@ -1,5 +1,6 @@
 #include "io.hpp"
 #include "settings.hpp"
+#include <termios.h>
 
 using namespace tsw::io;
 using namespace tsw::io::settings;
@@ -22,7 +23,7 @@ int main(int argc, char* argv[])
     string settingsFile = startingDir + "/motor_test.json";
     MotorSettings settings(settingsFile);
     ConfigureLog(settings.LogFlags);
-    SerialPort port;
+    SerialPort port(B115200);
 
     port.Open(settings.MotorsSerialPath);
 
@@ -56,5 +57,6 @@ int main(int argc, char* argv[])
     }
 
     cout << "Move command sent and finished" << endl;
+	devicePort.StopGathering();
     return 0;
 }

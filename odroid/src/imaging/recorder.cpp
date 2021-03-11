@@ -14,6 +14,7 @@ using namespace std;
 Recorder::Recorder(FlirCamera& camera)
 {
     _camera = &camera;
+	_isRecording = false;
 }
 
 void Recorder::StartRecording(string fileName)
@@ -80,6 +81,7 @@ void Recorder::OnLiveFeedImageReceived(LiveFeedCallbackArgs args)
 
 void Recorder::Record()
 {
+	size_t frameIndex = 0;
     while(IsRecording())
     {
         // Put all of the frames that are in the buffer in the video.
@@ -100,7 +102,7 @@ void Recorder::Record()
 
             // Put this frame in the video.
             _aviWriter.write(MatFromImage(image));
-            Log("Frame recorded", Recording);
+            Log("Frame " + to_string(frameIndex++) + " recorded", Recording);
         }
 
         // Wait a bit before recording more frames.

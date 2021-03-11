@@ -47,7 +47,7 @@ void MotorController::SendMoveCommand(uchar specifierByte, double horizontal, do
     // Now we can send the command to the motor.
     // This is an asynchronous move since we don't really need to know when the motor has moved.
     Log("MOVE " + moveName + "\tH:  " + to_string(horizontal) + "\tV:  " + to_string(vertical), Movements);
-    _commandPort->WriteToDevice(Motors, bytes);
+    _commandPort->WriteToDevice(bytes);
 
     // Wait for the acknowledge (not the same as a synch response).
     // It is possible that the read response is not an ack but a success/failure from a previous move.
@@ -83,6 +83,7 @@ void MotorController::Activate()
 {
     Log("Activating motors", Motors);
     _commandPort->WriteToDevice(0x89);
+    _commandPort->ReadFromDevice(Motors);
     Log("Motors Activated", Motors);
 }
 
@@ -90,6 +91,7 @@ void MotorController::Deactivate()
 {
     Log("Deactivating motors", Motors);
     _commandPort->WriteToDevice(0x8a);
+    _commandPort->ReadFromDevice(Motors);
     Log("Motors Deactivated", Motors);
 }
 
