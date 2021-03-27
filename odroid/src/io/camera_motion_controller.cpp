@@ -163,5 +163,5 @@ void CameraMotionController::CheckLastSeen()
 void CameraMotionController::GoToHome()
 {
     Log("Going to home position", Movements);
-    _motorController->SendSyncAbsoluteMoveCommand(HomeAngles.x, HomeAngles.y);
+    _motorController->SendSyncRelativeMoveCommand(HomeAngles.x, HomeAngles.y);
 }

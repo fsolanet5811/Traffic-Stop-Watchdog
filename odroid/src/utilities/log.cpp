@@ -1,8 +1,9 @@
-#include "io.hpp"
+#include "utilities.hpp"
+#include <iostream>
 
-using namespace tsw::io;
+using namespace tsw::utilities;
 
-uint _logFlags = tsw::io::Information;
+uint _logFlags = tsw::utilities::Information;
 mutex _logKey;
 
 void ConfigureLog(uint flags)

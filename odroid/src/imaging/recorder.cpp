@@ -15,6 +15,7 @@ Recorder::Recorder(FlirCamera& camera)
 {
     _camera = &camera;
 	_isRecording = false;
+    _frameBufferLock.Name = "REC";
 }
 
 void Recorder::StartRecording(string fileName)
@@ -50,12 +51,13 @@ void Recorder::StopRecording()
 {
     if(IsRecording())
     {
-        // Stop listening for the new frames.
-        _camera->UnregisterLiveFeedCallback(_callbackKey);
+        _isRecording = false;
 
         // Wait for the recording thread to finish. (This could take a while!)
-        _isRecording = false;
         _recordFuture.wait();
+
+        // Stop listening for the new frames.
+        _camera->UnregisterLiveFeedCallback(_callbackKey);
 
         // Close the video up.
         _aviWriter.release();
@@ -69,14 +71,18 @@ bool Recorder::IsRecording()
 
 void Recorder::OnLiveFeedImageReceived(LiveFeedCallbackArgs args)
 {
-    // Add this image frame to our buffer.
-    // Another thread will take care of actually recording it.
-    // We do this so that images can be acquired as fast as possible.
-    Log("Adding frame # " + to_string(args.imageIndex) + " to recording buffer", Recording);
-    _frameBufferKey.lock();
-    _frameBuffer.push(args.image);
-    _frameBufferKey.unlock();
-    Log("Frame added to recording buffer", Recording);
+    // In case this gets invoked after we stop recording.
+    if(IsRecording())
+    {
+        // Add this image frame to our buffer.
+        // Another thread will take care of actually recording it.
+        // We do this so that images can be acquired as fast as possible.
+        Log("Adding frame # " + to_string(args.imageIndex) + " to recording buffer", Recording);
+        _frameBufferLock.Lock("Add Image");
+        _frameBuffer.push(args.image);
+        _frameBufferLock.Unlock("Add Image");
+        Log("Frame added to recording buffer", Recording);
+    }
 }
 
 void Recorder::Record()
@@ -87,18 +93,20 @@ void Recorder::Record()
         // Put all of the frames that are in the buffer in the video.
         while(true)
         {
-            _frameBufferKey.lock();
-            if(_frameBuffer.empty())
+            _frameBufferLock.Lock("Record");
+            size_t framesLeft = _frameBuffer.size();
+            Log(to_string(framesLeft) + " frames found in buffer", Recording);
+            if(framesLeft <= 0)
             {
                 // No frames to record.
-                _frameBufferKey.unlock();
+                _frameBufferLock.Unlock("Record");
                 break;
             }
 
             // Access and remove the next frame.
             ImagePtr image = _frameBuffer.front();
             _frameBuffer.pop();
-            _frameBufferKey.unlock();
+            _frameBufferLock.Unlock("Record");
 
             // Put this frame in the video.
             _aviWriter.write(MatFromImage(image));

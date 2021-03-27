@@ -1,6 +1,8 @@
 #include "io.hpp"
+#include "utilities.hpp"
 
 using namespace tsw::io;
+using namespace tsw::utilities;
 
 MotorController::MotorController(DeviceSerialPort& commandPort, MotorConfig panConfig, MotorConfig tiltConfig)
 {
@@ -51,7 +53,7 @@ void MotorController::SendMoveCommand(uchar specifierByte, double horizontal, do
 
     // Wait for the acknowledge (not the same as a synch response).
     // It is possible that the read response is not an ack but a success/failure from a previous move.
-    while(false)
+    while(true)
     {
         Log("Reading move command acknowledge", Acknowledge);
         DeviceMessage message = _commandPort->ReadFromDevice(Motors);
@@ -68,7 +70,7 @@ void MotorController::SendMoveCommand(uchar specifierByte, double horizontal, do
         if(lsbs == 0x02)
         {
             // There was a fault in the motors' last movement.
-            Log("Motors returned FAULT!", Error);
+            Log("Motors returned FAULT!", tsw::utilities::Error);
         }
         else
         {
@@ -83,7 +85,13 @@ void MotorController::Activate()
 {
     Log("Activating motors", Motors);
     _commandPort->WriteToDevice(0x89);
+	
+	// Read the acknowledgement.
     _commandPort->ReadFromDevice(Motors);
+
+	// The motors will send us a byte when it is calibrated.
+	// We gotta wait for this before starting anything else.
+	//_commandPort->ReadFromDevice(Motors);
     Log("Motors Activated", Motors);
 }
 

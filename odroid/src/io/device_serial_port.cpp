@@ -9,6 +9,7 @@ using namespace std;
 DeviceSerialPort::DeviceSerialPort(SerialPort& port)
 {
     _port = &port;
+    _bufferLock.Name = "DSP";
 }
 
 bool DeviceSerialPort::IsGathering()
@@ -75,9 +76,9 @@ void DeviceSerialPort::Gather()
                 message.device = currentDevice;
                 message.bytes = currentMessage;
 
-                _bufferKey.lock();
+                _bufferLock.Lock("Add Message");
                 _buffer.push_back(message);
-                _bufferKey.unlock();
+                _bufferLock.Unlock("Add Message");
 
                 currentMessage = vector<uchar>();
             }
@@ -136,7 +137,7 @@ void DeviceSerialPort::WriteToDevice(uchar formattedByte)
 bool DeviceSerialPort::TryReadFromDevice(Device device, DeviceMessage* readMessage)
 {
     // Get a hold of the list of bytes.
-    _bufferKey.lock();
+    _bufferLock.Lock("Read Message");
     for(int i = 0; i < _buffer.size(); i++)
     {
         // Only grab the byte if it is from the device we want.
@@ -145,14 +146,14 @@ bool DeviceSerialPort::TryReadFromDevice(Device device, DeviceMessage* readMessa
             // We can return this message once we remove it from the list and unlock the buffer.
             DeviceMessage found = _buffer[i];
             _buffer.erase(_buffer.begin() + i);
-            _bufferKey.unlock();
+            _bufferLock.Unlock("Read Message");
             *readMessage = found;
             return true;
         }
     }
 
     // Release the list.
-    _bufferKey.unlock();
+    _bufferLock.Unlock("Read Message");
     return false;
 }
 

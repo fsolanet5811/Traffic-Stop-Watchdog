@@ -25,9 +25,8 @@ namespace tsw::io
         void Close();
         ~SerialPort();
     private:
-	speed_t _baudRate;
+	    speed_t _baudRate;
         int _port;
-        mutex _portKey;
     };
 
     enum Device
@@ -61,7 +60,7 @@ namespace tsw::io
         future<void> _gatherFuture;
         SerialPort* _port;
         vector<DeviceMessage> _buffer;
-        mutex _bufferKey;
+        SmartLock _bufferLock;
         void Gather();
     };
 
@@ -175,22 +174,4 @@ namespace tsw::io
     protected:
         DeviceSerialPort* _commandPort;
     };
-
-    
-    enum LogFlag
-    {
-        Error = 0b1,
-        Debug = 0b10,
-        Information = 0b100,
-        Frames = 0b1000,
-        Officers = 0b10000,
-        Movements = 0b100000,
-        Recording = 0b1000000,
-        RawSerial = 0b10000000,
-        DeviceSerial = 0b100000000,
-        Acknowledge = 0b1000000000
-    };
 }
-
-void ConfigureLog(uint flags);
-void Log(string s, uint flags);

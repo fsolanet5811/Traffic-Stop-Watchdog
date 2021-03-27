@@ -78,7 +78,7 @@ void SerialPort::Open(string devicePath)
 
 int SerialPort::Read(unsigned char* buffer, int bytesToRead)
 {
-    Log("Trying to read " + to_string(bytesToRead) + " bytes.", RawSerial);
+    //Log("Trying to read " + to_string(bytesToRead) + " bytes.", RawSerial);
     int bytesRead = read(_port, buffer, bytesToRead);
 
     // Make sure it worked.
@@ -86,8 +86,11 @@ int SerialPort::Read(unsigned char* buffer, int bytesToRead)
     {
         throw runtime_error("Failed to read bytes.");
     }
-
-    Log("Read " + to_string(bytesRead) + " bytes.", RawSerial);
+	
+	if(bytesRead > 0)
+	{
+		Log("Read " + to_string(bytesRead) + " bytes.", RawSerial);
+	}
 
     return bytesRead;
 }

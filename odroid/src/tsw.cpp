@@ -1,12 +1,14 @@
 #include "imaging.hpp"
 #include "io.hpp"
 #include "Spinnaker.h"
+#include "utilities.hpp"
 #include <fstream>
 #include "settings.hpp"
-
+    
 using namespace tsw::imaging;
 using namespace tsw::io;
 using namespace tsw::io::settings;
+using namespace tsw::utilities;
 
 DeviceSerialPort* ConnectToSerialPort(string serialPath, speed_t baudRate)
 {
@@ -22,7 +24,7 @@ DeviceSerialPort* ConnectToSerialPort(string serialPath, speed_t baudRate)
         }
         catch(exception e)
         {
-            Log("Could not open serial port", tsw::io::Error); 
+            Log("Could not open serial port", tsw::utilities::Error); 
         }
 
         // Wait a bit before connecting again.
@@ -44,7 +46,7 @@ FlirCamera* ConnectToCamera(string cameraSerialNumber)
         }
         catch(exception e)
         {
-            Log("Could not connect to camera. " + string(e.what()), tsw::io::Error);
+            Log("Could not connect to camera. " + string(e.what()), tsw::utilities::Error);
         }
 
         // Wait a bit before connecting again.
@@ -129,7 +131,8 @@ int main(int argc, char* argv[])
             {
                 case StartOfficerTracking:
                     Log("Starting officer tracking", Information | DeviceSerial | Recording | Officers);
-                    motionController.StartCameraMotionGuidance();
+                    //motionController.StartCameraMotionGuidance();
+					//usleep(5000000);
                     camera->StartLiveFeed();
                     recorder.StartRecording("1footage.avi");                    
                     break;
@@ -146,7 +149,7 @@ int main(int argc, char* argv[])
                     break;
 
                 default:
-                    Log("Unimplemented command " + to_string(command->action), tsw::io::Error | DeviceSerial);
+                    Log("Unimplemented command " + to_string(command->action), tsw::utilities::Error | DeviceSerial);
             }
 
             // Gotta dealocate!
@@ -155,7 +158,7 @@ int main(int argc, char* argv[])
     }
     catch(exception ex)
     {
-        Log("An error occured:\n" + string(ex.what()), tsw::io::Error);
+        Log("An error occured:\n" + string(ex.what()), tsw::utilities::Error);
     }
     
     if(camera->IsLiveFeedOn())
