@@ -87,11 +87,14 @@ void MotorController::Activate()
     _commandPort->WriteToDevice(0x89);
 	
 	// Read the acknowledgement.
+    Log("Waiting for acknowledge from motors", Motors | Acknowledge);
     _commandPort->ReadFromDevice(Motors);
+    Log("Acknowledge from motors received", Motors | Acknowledge);
 
 	// The motors will send us a byte when it is calibrated.
 	// We gotta wait for this before starting anything else.
-	//_commandPort->ReadFromDevice(Motors);
+    Log("Waiting for activation finish response", Motors);
+	_commandPort->ReadFromDevice(Motors);
     Log("Motors Activated", Motors);
 }
 
@@ -99,7 +102,12 @@ void MotorController::Deactivate()
 {
     Log("Deactivating motors", Motors);
     _commandPort->WriteToDevice(0x8a);
+    
+    // Read the acknowledgement.
+    Log("Waiting for acknowledge from motors", Motors | Acknowledge);
     _commandPort->ReadFromDevice(Motors);
+    Log("Acknowledge from motors received", Motors | Acknowledge);
+
     Log("Motors Deactivated", Motors);
 }
 
