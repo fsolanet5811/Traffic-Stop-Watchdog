@@ -67,6 +67,43 @@ void PrintFile(string fileName)
     fs.close();
 }
 
+void RunOfficerTracking(CameraMotionController& motionController, FlirCamera* camera, Recorder& recorder, TswSettings& settings)
+{
+    Log("Starting officer tracking", Information | DeviceSerial | Recording | Officers);
+    
+    if(settings.MoveCamera)
+    {
+        motionController.StartCameraMotionGuidance();
+    }
+    
+    camera->StartLiveFeed();
+    
+    if(settings.RecordFrames)
+    {
+        recorder.StartRecording("1footage.avi");
+    }
+    
+    Log("Officer tracking started", Information | DeviceSerial | Recording | Officers);
+}
+
+void FinishOfficerTracking(CameraMotionController& motionController, FlirCamera* camera, Recorder& recorder, TswSettings& settings)
+{
+    Log("Stopping officer tracking", Information | DeviceSerial | Recording | Officers);
+    camera->StopLiveFeed();
+    
+    if(settings.MoveCamera)
+    {
+        motionController.StopCameraMotionGuidance();
+    }
+    
+    if(settings.RecordFrames)
+    {
+        recorder.StopRecording();
+    }
+    
+    Log("Officer tracking stopped", Information | DeviceSerial | Recording | Officers);
+}
+
 int main(int argc, char* argv[])
 {
     // Initialize the settings.
@@ -130,18 +167,11 @@ int main(int argc, char* argv[])
             switch(command->action)
             {
                 case StartOfficerTracking:
-                    Log("Starting officer tracking", Information | DeviceSerial | Recording | Officers);
-                    //motionController.StartCameraMotionGuidance();
-					//usleep(5000000);
-                    camera->StartLiveFeed();
-                    recorder.StartRecording("1footage.avi");                    
+                    RunOfficerTracking(motionController, camera, recorder, settings);                    
                     break;
 
                 case StopOfficerTracking:
-                    Log("Stopping officer tracking", Information | DeviceSerial | Recording | Officers);
-                    camera->StopLiveFeed();
-                    motionController.StopCameraMotionGuidance();
-                    recorder.StopRecording();
+                    FinishOfficerTracking(motionController, camera, recorder, settings);
                     break;
 
                 case SendKeyword:

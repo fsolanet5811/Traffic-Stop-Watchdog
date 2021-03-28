@@ -47,6 +47,8 @@ namespace tsw::io::settings
         int CameraFrameHeight;
         MotorConfig PanConfig;
         MotorConfig TiltConfig;
+        bool RecordFrames;
+        bool MoveCamera;
         void Load(string settingsFile);
 
     private:

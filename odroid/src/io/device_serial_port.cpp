@@ -64,7 +64,7 @@ void DeviceSerialPort::Gather()
             }
             
             // Add this byte to the list.
-            Log("Read byte from " + to_string((int)currentDevice) + ": " + to_string((int)b[0]), RawSerial);
+            Log("Read byte from " + to_string((int)currentDevice) + ": " + to_string((int)b[0]), RawSerial | RawSerialReceives);
             currentMessage.push_back(b[0]);
             bytesForCurrent--;
             
