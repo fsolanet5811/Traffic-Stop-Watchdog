@@ -1,6 +1,8 @@
 #include "io.hpp"
+#include "utilities.hpp"
 
 using namespace tsw::io;
+using namespace tsw::utilities;
 
 MotorController::MotorController(DeviceSerialPort& commandPort, MotorConfig panConfig, MotorConfig tiltConfig)
 {
@@ -47,7 +49,7 @@ void MotorController::SendMoveCommand(uchar specifierByte, double horizontal, do
     // Now we can send the command to the motor.
     // This is an asynchronous move since we don't really need to know when the motor has moved.
     Log("MOVE " + moveName + "\tH:  " + to_string(horizontal) + "\tV:  " + to_string(vertical), Movements);
-    _commandPort->WriteToDevice(Motors, bytes);
+    _commandPort->WriteToDevice(bytes);
 
     // Wait for the acknowledge (not the same as a synch response).
     // It is possible that the read response is not an ack but a success/failure from a previous move.
@@ -68,7 +70,7 @@ void MotorController::SendMoveCommand(uchar specifierByte, double horizontal, do
         if(lsbs == 0x02)
         {
             // There was a fault in the motors' last movement.
-            Log("Motors returned FAULT!", Error);
+            Log("Motors returned FAULT!", tsw::utilities::Error);
         }
         else
         {
@@ -83,6 +85,16 @@ void MotorController::Activate()
 {
     Log("Activating motors", Motors);
     _commandPort->WriteToDevice(0x89);
+	
+	// Read the acknowledgement.
+    Log("Waiting for acknowledge from motors", Motors | Acknowledge);
+    _commandPort->ReadFromDevice(Motors);
+    Log("Acknowledge from motors received", Motors | Acknowledge);
+
+	// The motors will send us a byte when it is calibrated.
+	// We gotta wait for this before starting anything else.
+    Log("Waiting for activation finish response", Motors);
+	_commandPort->ReadFromDevice(Motors);
     Log("Motors Activated", Motors);
 }
 
@@ -90,6 +102,12 @@ void MotorController::Deactivate()
 {
     Log("Deactivating motors", Motors);
     _commandPort->WriteToDevice(0x8a);
+    
+    // Read the acknowledgement.
+    Log("Waiting for acknowledge from motors", Motors | Acknowledge);
+    _commandPort->ReadFromDevice(Motors);
+    Log("Acknowledge from motors received", Motors | Acknowledge);
+
     Log("Motors Deactivated", Motors);
 }
 

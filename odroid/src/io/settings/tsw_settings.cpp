@@ -29,9 +29,9 @@ void TswSettings::Load(string settingsFile)
     LoadJsonFile(&doc, settingsFile);
     
     // Now we can populate our settings.
-    DeviceSerialPath = doc["DeviceSerialPath"].GetString();
-    MotorsSerialPath = doc["MotorsSerialPath"].GetString();
-    HandheldSerialPath = doc["HandheldSerialPath"].GetString();
+    DeviceSerialConfig = ReadSerialConfig(doc, "DeviceSerialConfig");
+    MotorsSerialConfig = ReadSerialConfig(doc, "MotorsSerialConfig");
+    HandheldSerialConfig = ReadSerialConfig(doc, "HandheldSerialConfig");
     CameraSerialNumber = doc["CameraSerialNumber"].GetString();
     UseDeviceAdapter = doc["UseDeviceAdapter"].GetBool();
     OfficerClassId = doc["OfficerClassId"].GetInt();
@@ -44,6 +44,8 @@ void TswSettings::Load(string settingsFile)
     CameraFrameWidth = doc["CameraFrameWidth"].GetInt();
     PanConfig = ReadMotorConfig(doc, "PanConfig");
     TiltConfig = ReadMotorConfig(doc, "TiltConfig");
+    RecordFrames = doc["RecordFrames"].GetBool();
+    MoveCamera = doc["MoveCamera"].GetBool();
 
     // Get the log settings.
     LogFlags = ReadLogFlags(doc, "LogFlags");

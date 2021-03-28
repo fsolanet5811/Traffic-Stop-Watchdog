@@ -20,10 +20,11 @@ namespace tsw::io::settings
         static Vector2 ReadVector2(Document& doc, string vectorName);
         static Bounds ReadBounds(Document& doc, string boundsName);
         static uint ReadLogFlags(Document& doc, string logFlagsName);
+        static SerialConfig ReadSerialConfig(Document& doc, string serialConfigName);
 
     private:
         static bool ReadLogFlag(Document& doc, string logFlagsName, string flagName);
-
+        static speed_t ParseBaudRate(int baudRate);
     };
 
     class TswSettings : public Settings
@@ -31,20 +32,23 @@ namespace tsw::io::settings
     public:
         TswSettings();
         TswSettings(string settingsFile);
-        string DeviceSerialPath;
-        string MotorsSerialPath;
-        string HandheldSerialPath;
+        SerialConfig DeviceSerialConfig;
+        SerialConfig MotorsSerialConfig;
+        SerialConfig HandheldSerialConfig;
         string CameraSerialNumber;
         bool UseDeviceAdapter;
         short OfficerClassId;
         Vector2 TargetRegionProportion;
         Vector2 SafeRegionProportion;
         int CameraFramesToSkipMoving;
+	    Vector2 HomeAngles;
         double CameraFrameRate;
         int CameraFrameWidth;
         int CameraFrameHeight;
         MotorConfig PanConfig;
         MotorConfig TiltConfig;
+        bool RecordFrames;
+        bool MoveCamera;
         void Load(string settingsFile);
 
     private:

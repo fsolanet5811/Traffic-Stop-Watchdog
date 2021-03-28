@@ -1,12 +1,14 @@
 #include "imaging.hpp"
 #include "io.hpp"
 #include "Spinnaker.h"
+#include "utilities.hpp"
 #include <fstream>
 #include "settings.hpp"
-
+    
 using namespace tsw::imaging;
 using namespace tsw::io;
 using namespace tsw::io::settings;
+using namespace tsw::utilities;
 
 DeviceSerialPort* ConnectToSerialPort(string serialPath, speed_t baudRate)
 {
@@ -22,7 +24,7 @@ DeviceSerialPort* ConnectToSerialPort(string serialPath, speed_t baudRate)
         }
         catch(exception e)
         {
-            Log("Could not open serial port", tsw::io::Error); 
+            Log("Could not open serial port", tsw::utilities::Error); 
         }
 
         // Wait a bit before connecting again.
@@ -44,7 +46,7 @@ FlirCamera* ConnectToCamera(string cameraSerialNumber)
         }
         catch(exception e)
         {
-            Log("Could not connect to camera. " + string(e.what()), tsw::io::Error);
+            Log("Could not connect to camera. " + string(e.what()), tsw::utilities::Error);
         }
 
         // Wait a bit before connecting again.
@@ -65,6 +67,43 @@ void PrintFile(string fileName)
     fs.close();
 }
 
+void RunOfficerTracking(CameraMotionController& motionController, FlirCamera* camera, Recorder& recorder, TswSettings& settings)
+{
+    Log("Starting officer tracking", Information | DeviceSerial | Recording | Officers);
+    
+    if(settings.MoveCamera)
+    {
+        motionController.StartCameraMotionGuidance();
+    }
+    
+    camera->StartLiveFeed();
+    
+    if(settings.RecordFrames)
+    {
+        recorder.StartRecording("1footage.avi");
+    }
+    
+    Log("Officer tracking started", Information | DeviceSerial | Recording | Officers);
+}
+
+void FinishOfficerTracking(CameraMotionController& motionController, FlirCamera* camera, Recorder& recorder, TswSettings& settings)
+{
+    Log("Stopping officer tracking", Information | DeviceSerial | Recording | Officers);
+    camera->StopLiveFeed();
+    
+    if(settings.MoveCamera)
+    {
+        motionController.StopCameraMotionGuidance();
+    }
+    
+    if(settings.RecordFrames)
+    {
+        recorder.StopRecording();
+    }
+    
+    Log("Officer tracking stopped", Information | DeviceSerial | Recording | Officers);
+}
+
 int main(int argc, char* argv[])
 {
     // Initialize the settings.
@@ -82,13 +121,13 @@ int main(int argc, char* argv[])
     CommandAgent* agent;
     if(settings.UseDeviceAdapter)
     {
-        portThatCanTalkToMotors = ConnectToSerialPort(settings.DeviceSerialPath, B9600);
+        portThatCanTalkToMotors = ConnectToSerialPort(settings.DeviceSerialConfig.path, settings.DeviceSerialConfig.baudRate);
         agent = new CommandAgent(*portThatCanTalkToMotors);
     }
     else
     {
-        portThatCanTalkToMotors = ConnectToSerialPort(settings.MotorsSerialPath, B115200);
-        DeviceSerialPort* handheldPort = ConnectToSerialPort(settings.HandheldSerialPath, B9600);
+        portThatCanTalkToMotors = ConnectToSerialPort(settings.MotorsSerialConfig.path, settings.MotorsSerialConfig.baudRate);
+        DeviceSerialPort* handheldPort = ConnectToSerialPort(settings.HandheldSerialConfig.path, settings.HandheldSerialConfig.baudRate);
         handheldPort->StartGathering();
         agent = new CommandAgent(*handheldPort);
     }
@@ -128,21 +167,19 @@ int main(int argc, char* argv[])
             switch(command->action)
             {
                 case StartOfficerTracking:
-                    Log("Starting officer tracking", Information | DeviceSerial | Recording | Officers);
-                    motionController.StartCameraMotionGuidance();
-                    camera->StartLiveFeed();
-                    recorder.StartRecording("1footage.avi");                    
+                    RunOfficerTracking(motionController, camera, recorder, settings);                    
                     break;
 
                 case StopOfficerTracking:
-                    Log("Stopping officer tracking", Information | DeviceSerial | Recording | Officers);
-                    camera->StopLiveFeed();
-                    motionController.StopCameraMotionGuidance();
-                    recorder.StopRecording();
+                    FinishOfficerTracking(motionController, camera, recorder, settings);
+                    break;
+
+                case SendKeyword:
+                    Log("Received Keyword: " + string(command->args.begin(), command->args.end()), Information);
                     break;
 
                 default:
-                    Log("Unimplemented command " + to_string(command->action), tsw::io::Error | DeviceSerial);
+                    Log("Unimplemented command " + to_string(command->action), tsw::utilities::Error | DeviceSerial);
             }
 
             // Gotta dealocate!
@@ -151,7 +188,7 @@ int main(int argc, char* argv[])
     }
     catch(exception ex)
     {
-        Log("An error occured:\n" + string(ex.what()), tsw::io::Error);
+        Log("An error occured:\n" + string(ex.what()), tsw::utilities::Error);
     }
     
     if(camera->IsLiveFeedOn())

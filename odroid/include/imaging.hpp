@@ -3,6 +3,7 @@
 #include "Spinnaker.h"
 #include "SpinGenApi/SpinnakerGenApi.h"
 #include "opencv.hpp"
+#include "utilities.hpp"
 #include <string>
 #include <future>
 
@@ -10,6 +11,7 @@ using namespace std;
 using namespace Spinnaker;
 using namespace Spinnaker::GenApi;
 using namespace cv;
+using namespace tsw::utilities;
 
 namespace tsw::imaging
 {
@@ -29,7 +31,7 @@ namespace tsw::imaging
     struct LiveFeedCallbackArgs
     {
         ImagePtr image;
-        uint imageIndex;
+        size_t imageIndex;
     }; 
 
     struct LiveFeedCallback
@@ -63,14 +65,25 @@ namespace tsw::imaging
     private:
         SystemPtr _system;
         CameraPtr _camera;
-        mutex _liveFeedKey;
-        future<void> _liveFeedFuture;
+        SmartLock _liveFeedLock;
         uint _nextLiveFeedKey;
         bool _isLiveFeedOn;
         list<LiveFeedCallback> _liveFeedCallbacks;
+        future<void> _liveFeedFuture;
+        bool _isConnected;
+        bool _shouldBeConnected;
+        string _connectedSerialNumber;
+        int* _userFrameHeight;
+        int* _userFrameWidth;
+        double* _userFrameRate;
+        RgbTransformLightSourceEnums* _userFilter;
 
         void RunLiveFeed();
-        void OnLiveFeedImageReceived(ImagePtr image, uint imageIndex); 
+        void OnLiveFeedImageReceived(ImagePtr image, uint imageIndex);
+        bool TryConnect(string serialNumber, CameraPtr* camera);
+        void WaitForConnected(bool attemptToConnect = false);
+        void EnsureConnectionNotLost();
+        void PowerCycle();
     };
 
     class Recorder
@@ -89,8 +102,9 @@ namespace tsw::imaging
         uint _callbackKey;
         VideoWriter _aviWriter;
         queue<ImagePtr> _frameBuffer;
-        mutex _frameBufferKey;
+        SmartLock _frameBufferLock;
         future<void> _recordFuture;
+
         void Record();
         void OnLiveFeedImageReceived(LiveFeedCallbackArgs args);
         Mat MatFromImage(ImagePtr image);

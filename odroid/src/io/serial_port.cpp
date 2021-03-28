@@ -87,7 +87,7 @@ int SerialPort::Read(unsigned char* buffer, int bytesToRead)
         throw runtime_error("Failed to read bytes.");
     }
 
-    Log("Read " + to_string(bytesRead) + " bytes.", RawSerial);
+	Log("Read " + to_string(bytesRead) + " bytes.", RawSerial);
 
     return bytesRead;
 }
