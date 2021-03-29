@@ -87,7 +87,6 @@ void Recorder::OnLiveFeedImageReceived(LiveFeedCallbackArgs args)
 
 void Recorder::Record()
 {
-    namedWindow("Officer Footage", WINDOW_AUTOSIZE);
 	size_t frameIndex = 0;
     while(IsRecording())
     {
