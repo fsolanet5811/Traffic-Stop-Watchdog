@@ -39,6 +39,7 @@ Bounds Settings::ReadBounds(Document& doc, string boundsName)
     Bounds b;
     b.max = doc[boundsName.c_str()]["Max"].GetInt();
     b.min = doc[boundsName.c_str()]["Min"].GetInt();
+    return b;
 }
 
 uint Settings::ReadLogFlags(Document& doc, string logFlagsName)
