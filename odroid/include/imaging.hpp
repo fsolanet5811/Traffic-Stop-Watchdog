@@ -156,4 +156,26 @@ namespace tsw::imaging
     private:
         int _status;
     };
+
+    class DisplayWindow
+    {
+    public:
+        DisplayWindow(FlirCamera& camera, string windowName, int refreshRate);
+        string WindowName;
+        void Show();
+        void Close();
+        bool IsShown();
+
+    private:
+        FlirCamera* _camera;
+        uint _liveFeedCallbackKey;
+        bool _isShown;
+        future<void> _showFuture;
+        Mat _currentFrame;
+        int _refreshRate;
+        SmartLock _displayLock;
+        Mat MatFromImage(ImagePtr image);
+        void OnLiveFeedImageReceived(LiveFeedCallbackArgs args);
+        void RunWindow();
+    };
 }

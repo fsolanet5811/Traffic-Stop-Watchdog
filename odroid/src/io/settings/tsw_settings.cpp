@@ -46,6 +46,8 @@ void TswSettings::Load(string settingsFile)
     TiltConfig = ReadMotorConfig(doc, "TiltConfig");
     RecordFrames = doc["RecordFrames"].GetBool();
     MoveCamera = doc["MoveCamera"].GetBool();
+    DisplayFrames = doc["DisplayFrames"].GetBool();
+    FrameDisplayRefreshRate = doc["FrameDisplayRefreshRate"].GetInt();
 
     // Get the log settings.
     LogFlags = ReadLogFlags(doc, "LogFlags");

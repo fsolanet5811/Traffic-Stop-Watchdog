@@ -67,7 +67,7 @@ void PrintFile(string fileName)
     fs.close();
 }
 
-void RunOfficerTracking(CameraMotionController& motionController, FlirCamera* camera, Recorder& recorder, TswSettings& settings)
+void RunOfficerTracking(CameraMotionController& motionController, FlirCamera* camera, Recorder& recorder, TswSettings& settings, DisplayWindow& window)
 {
     Log("Starting officer tracking", Information | DeviceSerial | Recording | Officers);
     
@@ -79,6 +79,11 @@ void RunOfficerTracking(CameraMotionController& motionController, FlirCamera* ca
     // We only need the live feed if we actually are going to move and/or record.
     if(settings.MoveCamera || settings.RecordFrames)
     {
+        if(settings.DisplayFrames)
+        {
+            window.Show();
+        }
+        
         camera->StartLiveFeed();
     }
     
@@ -91,11 +96,16 @@ void RunOfficerTracking(CameraMotionController& motionController, FlirCamera* ca
     Log("Officer tracking started", Information | DeviceSerial | Recording | Officers);
 }
 
-void FinishOfficerTracking(CameraMotionController& motionController, FlirCamera* camera, Recorder& recorder, TswSettings& settings)
+void FinishOfficerTracking(CameraMotionController& motionController, FlirCamera* camera, Recorder& recorder, TswSettings& settings, DisplayWindow& window)
 {
     Log("Stopping officer tracking", Information | DeviceSerial | Recording | Officers);
     if(settings.MoveCamera || settings.RecordFrames)
     {
+        if(settings.DisplayFrames)
+        {
+            window.Close();
+        }
+        
         camera->StopLiveFeed();
     }
     
@@ -148,6 +158,7 @@ int main(int argc, char* argv[])
     camera->SetFrameWidth(settings.CameraFrameWidth);
     camera->SetFrameRate(settings.CameraFrameRate);
     Recorder recorder(*camera);
+    DisplayWindow window(*camera, "Officer Footage", settings.FrameDisplayRefreshRate);
 
     // Setup the motion control.
     ConfidenceOfficerLocator officerLocator(settings.OfficerClassId);
@@ -175,11 +186,11 @@ int main(int argc, char* argv[])
             switch(command->action)
             {
                 case StartOfficerTracking:
-                    RunOfficerTracking(motionController, camera, recorder, settings);                    
+                    RunOfficerTracking(motionController, camera, recorder, settings, window);                    
                     break;
 
                 case StopOfficerTracking:
-                    FinishOfficerTracking(motionController, camera, recorder, settings);
+                    FinishOfficerTracking(motionController, camera, recorder, settings, window);
                     break;
 
                 case SendKeyword:

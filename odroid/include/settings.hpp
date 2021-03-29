@@ -49,6 +49,8 @@ namespace tsw::io::settings
         MotorConfig TiltConfig;
         bool RecordFrames;
         bool MoveCamera;
+        bool DisplayFrames;
+        int FrameDisplayRefreshRate;
         void Load(string settingsFile);
 
     private:
