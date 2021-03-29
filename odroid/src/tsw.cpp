@@ -116,6 +116,8 @@ int main(int argc, char* argv[])
     PrintFile(settingsFile);
     ConfigureLog(settings.LogFlags);
 
+    FlirCamera* camera = ConnectToCamera(settings.CameraSerialNumber);
+
     // Connect to the device port.
     DeviceSerialPort* portThatCanTalkToMotors;
     CommandAgent* agent;
@@ -135,7 +137,7 @@ int main(int argc, char* argv[])
     portThatCanTalkToMotors->StartGathering();
 
     // Connect to the camera and attach the recorder.
-    FlirCamera* camera = ConnectToCamera(settings.CameraSerialNumber);
+    //FlirCamera* camera = ConnectToCamera(settings.CameraSerialNumber);
     camera->SetFrameHeight(settings.CameraFrameHeight);
     camera->SetFrameWidth(settings.CameraFrameWidth);
     camera->SetFrameRate(settings.CameraFrameRate);
