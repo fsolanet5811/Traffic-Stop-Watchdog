@@ -1,7 +1,7 @@
 #include "imaging.hpp"
 #include "Spinnaker.h"
 #include "SpinGenApi/SpinnakerGenApi.h"
-#include "opencv.hpp"
+#include "opencv2/opencv.hpp"
 #include "io.hpp"
 #include <functional>
 

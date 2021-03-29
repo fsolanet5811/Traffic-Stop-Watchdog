@@ -2,7 +2,7 @@
 
 #include "Spinnaker.h"
 #include "SpinGenApi/SpinnakerGenApi.h"
-#include "opencv.hpp"
+#include "opencv2/opencv.hpp"
 #include "utilities.hpp"
 #include <string>
 #include <future>
