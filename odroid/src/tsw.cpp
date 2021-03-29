@@ -76,7 +76,12 @@ void RunOfficerTracking(CameraMotionController& motionController, FlirCamera* ca
         motionController.StartCameraMotionGuidance();
     }
     
-    camera->StartLiveFeed();
+    // We only need the live feed if we actually are going to move and/or record.
+    if(settings.MoveCamera || settings.RecordFrames)
+    {
+        camera->StartLiveFeed();
+    }
+    
     
     if(settings.RecordFrames)
     {
@@ -89,7 +94,10 @@ void RunOfficerTracking(CameraMotionController& motionController, FlirCamera* ca
 void FinishOfficerTracking(CameraMotionController& motionController, FlirCamera* camera, Recorder& recorder, TswSettings& settings)
 {
     Log("Stopping officer tracking", Information | DeviceSerial | Recording | Officers);
-    camera->StopLiveFeed();
+    if(settings.MoveCamera || settings.RecordFrames)
+    {
+        camera->StopLiveFeed();
+    }
     
     if(settings.MoveCamera)
     {

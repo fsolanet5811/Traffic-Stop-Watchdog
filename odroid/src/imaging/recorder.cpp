@@ -87,6 +87,7 @@ void Recorder::OnLiveFeedImageReceived(LiveFeedCallbackArgs args)
 
 void Recorder::Record()
 {
+    namedWindow("Officer Footage", WINDOW_AUTOSIZE);
 	size_t frameIndex = 0;
     while(IsRecording())
     {
@@ -109,7 +110,8 @@ void Recorder::Record()
             _frameBufferLock.Unlock("Record");
 
             // Put this frame in the video.
-            _aviWriter.write(MatFromImage(image));
+            Mat cvImage = MatFromImage(image);
+            _aviWriter.write(cvImage);
             Log("Frame " + to_string(frameIndex++) + " recorded", Recording);
         }
 
