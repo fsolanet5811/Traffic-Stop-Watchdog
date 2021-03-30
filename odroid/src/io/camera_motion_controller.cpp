@@ -81,8 +81,9 @@ void CameraMotionController::OnLivefeedImageReceived(LiveFeedCallbackArgs args)
         if(dir.shouldMove)
         {
             // Based on the direction vector to move, we need to get the angles to rotate the motors.
-            double horizontalRotate = dir.movement.x * HorizontalFov / 2;
-            double verticalRotate = dir.movement.y * VerticalFov / 2;
+            // Positive angles point to the left/down, so we gotta negate these guys.
+            double horizontalRotate = -1 * dir.movement.x * HorizontalFov / 2;
+            double verticalRotate = -1 * dir.movement.y * VerticalFov / 2;
 
             _motorController->SendAsyncRelativeMoveCommand(horizontalRotate, verticalRotate);
         }

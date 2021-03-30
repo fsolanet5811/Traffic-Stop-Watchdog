@@ -21,6 +21,7 @@ namespace tsw::io::settings
         static Bounds ReadBounds(Document& doc, string boundsName);
         static uint ReadLogFlags(Document& doc, string logFlagsName);
         static SerialConfig ReadSerialConfig(Document& doc, string serialConfigName);
+        static ImageProcessingConfig ReadImageProcessingConfig(Document& doc, string imageProcessingConfigName);
 
     private:
         static bool ReadLogFlag(Document& doc, string logFlagsName, string flagName);
@@ -47,9 +48,8 @@ namespace tsw::io::settings
         int CameraFrameHeight;
         MotorConfig PanConfig;
         MotorConfig TiltConfig;
-        bool RecordFrames;
         bool MoveCamera;
-        bool DisplayFrames;
+        ImageProcessingConfig ImagingConfig;
         int FrameDisplayRefreshRate;
         void Load(string settingsFile);
 

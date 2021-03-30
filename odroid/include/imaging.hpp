@@ -40,6 +40,13 @@ namespace tsw::imaging
         uint callbackKey;
     };
 
+    struct ImageProcessingConfig
+    {
+        bool displayFrames;
+        bool recordFrames;
+        bool showBoxes;
+    };
+
     class FlirCamera
     {
     public:
@@ -89,25 +96,23 @@ namespace tsw::imaging
     class Recorder
     {
     public:
-        Recorder(FlirCamera& camera);
+        Recorder(Size frameSize, double fps);
         void StartRecording(string fileName);
         void StopRecording();
         bool IsRecording();
+        void AddFrame(Mat frame);
 
     private:
-        FlirCamera* _camera;
-        future<void> _recordingFuture;
         bool _isRecording;
         string _recordedFileName;
         uint _callbackKey;
         VideoWriter _aviWriter;
-        queue<ImagePtr> _frameBuffer;
+        queue<Mat> _frameBuffer;
         SmartLock _frameBufferLock;
         future<void> _recordFuture;
-
+        Size _frameSize;
+        double _fps;
         void Record();
-        void OnLiveFeedImageReceived(LiveFeedCallbackArgs args);
-        Mat MatFromImage(ImagePtr image);
     };
 
     class OfficerLocator
@@ -160,22 +165,39 @@ namespace tsw::imaging
     class DisplayWindow
     {
     public:
-        DisplayWindow(FlirCamera& camera, string windowName, int refreshRate);
+        DisplayWindow(string windowName, int refreshRate);
         string WindowName;
         void Show();
+        void Update(Mat currentFrame);
         void Close();
         bool IsShown();
 
     private:
-        FlirCamera* _camera;
-        uint _liveFeedCallbackKey;
         bool _isShown;
         future<void> _showFuture;
         Mat _currentFrame;
         int _refreshRate;
         SmartLock _displayLock;
         Mat MatFromImage(ImagePtr image);
-        void OnLiveFeedImageReceived(LiveFeedCallbackArgs args);
         void RunWindow();
+    };
+
+    class ImageProcessor
+    {
+    public:
+        ImageProcessor(Recorder& recorder, DisplayWindow& window, FlirCamera& camera, ImageProcessingConfig config);
+        void StartProcessing();
+        void StopProcessing();
+        bool IsProcessing();
+
+    private:
+        Recorder* _recorder;
+        DisplayWindow* _window;
+        FlirCamera* _camera;
+        uint _livefeedCallbackKey;
+        bool _isProcessing;
+        ImageProcessingConfig _config;
+        void OnLiveFeedImageReceived(LiveFeedCallbackArgs args);
+        Mat MatFromImage(ImagePtr image);
     };
 }

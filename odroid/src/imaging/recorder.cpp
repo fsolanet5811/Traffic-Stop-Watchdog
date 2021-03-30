@@ -11,9 +11,10 @@ using namespace Spinnaker;
 using namespace cv;
 using namespace std;
 
-Recorder::Recorder(FlirCamera& camera)
+Recorder::Recorder(Size frameSize, double fps)
 {
-    _camera = &camera;
+    _frameSize = frameSize;
+    _fps = fps;
 	_isRecording = false;
     _frameBufferLock.Name = "REC";
 }
@@ -27,17 +28,11 @@ void Recorder::StartRecording(string fileName)
         _recordedFileName = fileName;
        
         // Configure the video.
-        Size frameSize;
-        frameSize.height = _camera->GetFrameHeight();
-        frameSize.width = _camera->GetFrameWidth();
         int cc = VideoWriter::fourcc('M', 'J', 'P', 'G');
-        if(!_aviWriter.open(_recordedFileName, cc, _camera->GetFrameRate(), frameSize))
+        if(!_aviWriter.open(_recordedFileName, cc, _fps, _frameSize))
         {
             throw runtime_error("Video could not be initialized.");
         }
-
-        // Listen for when the camera gets frames.
-        _callbackKey = _camera->RegisterLiveFeedCallback(bind(&Recorder::OnLiveFeedImageReceived, this, placeholders::_1));
 
         // Start the thread that actually saves these frames.
         _recordFuture = async(launch::async, [this]()
@@ -56,9 +51,6 @@ void Recorder::StopRecording()
         // Wait for the recording thread to finish. (This could take a while!)
         _recordFuture.wait();
 
-        // Stop listening for the new frames.
-        _camera->UnregisterLiveFeedCallback(_callbackKey);
-
         // Close the video up.
         _aviWriter.release();
     }
@@ -69,7 +61,7 @@ bool Recorder::IsRecording()
     return _isRecording;
 }
 
-void Recorder::OnLiveFeedImageReceived(LiveFeedCallbackArgs args)
+void Recorder::AddFrame(Mat frame)
 {
     // In case this gets invoked after we stop recording.
     if(IsRecording())
@@ -77,11 +69,9 @@ void Recorder::OnLiveFeedImageReceived(LiveFeedCallbackArgs args)
         // Add this image frame to our buffer.
         // Another thread will take care of actually recording it.
         // We do this so that images can be acquired as fast as possible.
-        Log("Adding frame # " + to_string(args.imageIndex) + " to recording buffer", Recording);
         _frameBufferLock.Lock("Add Image");
-        _frameBuffer.push(args.image);
+        _frameBuffer.push(frame);
         _frameBufferLock.Unlock("Add Image");
-        Log("Frame added to recording buffer", Recording);
     }
 }
 
@@ -104,31 +94,16 @@ void Recorder::Record()
             }
 
             // Access and remove the next frame.
-            ImagePtr image = _frameBuffer.front();
+            Mat image = _frameBuffer.front();
             _frameBuffer.pop();
             _frameBufferLock.Unlock("Record");
 
             // Put this frame in the video.
-            Mat cvImage = MatFromImage(image);
-            _aviWriter.write(cvImage);
+            _aviWriter.write(image);
             Log("Frame " + to_string(frameIndex++) + " recorded", Recording);
         }
 
         // Wait a bit before recording more frames.
         usleep(100000);
     }
-}
-
-Mat Recorder::MatFromImage(ImagePtr image)
-{
-    // Put the pointer into an array of bytes.
-    unsigned char* data = (unsigned char*)image->GetData();
-    vector<unsigned char> imageBytes(data, data + image->GetImageSize());
-
-    Mat m(image->GetHeight(), image->GetWidth(), CV_8UC3, data);
-    
-    // Opencv interperets the data as bgr instead of rgb, so we gotta convert it.
-    cvtColor(m, m, COLOR_BGR2RGB);
-
-    return m; 
 }

@@ -74,6 +74,15 @@ bool Settings::ReadLogFlag(Document& doc, string logFlagsName, string flagName)
     return doc[logFlagsName.c_str()][flagName.c_str()].GetBool();
 }
 
+ImageProcessingConfig Settings::ReadImageProcessingConfig(Document& doc, string imageProcessingConfigName)
+{
+    ImageProcessingConfig config;
+    config.displayFrames = doc[imageProcessingConfigName.c_str()]["DisplayFrames"].GetBool();
+    config.recordFrames = doc[imageProcessingConfigName.c_str()]["RecordFrames"].GetBool();
+    config.showBoxes = doc[imageProcessingConfigName.c_str()]["ShowBoxes"].GetBool();
+    return config;
+}
+
 speed_t Settings::ParseBaudRate(int baudRate)
 {
     switch(baudRate)

@@ -67,7 +67,7 @@ void PrintFile(string fileName)
     fs.close();
 }
 
-void RunOfficerTracking(CameraMotionController& motionController, FlirCamera* camera, Recorder& recorder, TswSettings& settings, DisplayWindow& window)
+void RunOfficerTracking(CameraMotionController& motionController, FlirCamera* camera, ImageProcessor& imageProcessor, TswSettings& settings)
 {
     Log("Starting officer tracking", Information | DeviceSerial | Recording | Officers);
     
@@ -77,48 +77,32 @@ void RunOfficerTracking(CameraMotionController& motionController, FlirCamera* ca
     }
     
     // We only need the live feed if we actually are going to move and/or record.
-    if(settings.MoveCamera || settings.RecordFrames)
+    if(settings.MoveCamera || settings.ImagingConfig.recordFrames || settings.ImagingConfig.displayFrames)
     {
-        if(settings.DisplayFrames)
-        {
-            window.Show();
-        }
-        
+        // Start the processing first so that everything is setup for when we get the first frame.
+        imageProcessor.StartProcessing();
         camera->StartLiveFeed();
-    }
-    
-    
-    if(settings.RecordFrames)
-    {
-        recorder.StartRecording("1footage.avi");
     }
     
     Log("Officer tracking started", Information | DeviceSerial | Recording | Officers);
 }
 
-void FinishOfficerTracking(CameraMotionController& motionController, FlirCamera* camera, Recorder& recorder, TswSettings& settings, DisplayWindow& window)
+void FinishOfficerTracking(CameraMotionController& motionController, FlirCamera* camera, ImageProcessor& imageProcessor, TswSettings& settings)
 {
     Log("Stopping officer tracking", Information | DeviceSerial | Recording | Officers);
-    if(settings.MoveCamera || settings.RecordFrames)
-    {
-        if(settings.DisplayFrames)
-        {
-            window.Close();
-        }
-        
-        camera->StopLiveFeed();
-    }
-    
+           
     if(settings.MoveCamera)
     {
         motionController.StopCameraMotionGuidance();
     }
     
-    if(settings.RecordFrames)
+    if(settings.MoveCamera || settings.ImagingConfig.recordFrames || settings.ImagingConfig.displayFrames)
     {
-        recorder.StopRecording();
+        // Start the processing first so that everything is setup for when we get the first frame.
+        imageProcessor.StopProcessing();
+        camera->StopLiveFeed();
     }
-    
+
     Log("Officer tracking stopped", Information | DeviceSerial | Recording | Officers);
 }
 
@@ -152,13 +136,18 @@ int main(int argc, char* argv[])
 
     portThatCanTalkToMotors->StartGathering();
 
-    // Connect to the camera and attach the recorder.
+    // Connect to the camera and attach the recorder and display window.
     FlirCamera* camera = ConnectToCamera(settings.CameraSerialNumber);
     camera->SetFrameHeight(settings.CameraFrameHeight);
     camera->SetFrameWidth(settings.CameraFrameWidth);
     camera->SetFrameRate(settings.CameraFrameRate);
-    Recorder recorder(*camera);
-    DisplayWindow window(*camera, "Officer Footage", settings.FrameDisplayRefreshRate);
+
+    Size frameSize;
+    frameSize.height = camera->GetFrameHeight();
+    frameSize.width = camera->GetFrameWidth();
+    Recorder recorder(frameSize, camera->GetFrameRate());
+    DisplayWindow window("Officer Footage", settings.FrameDisplayRefreshRate);
+    ImageProcessor imageProcessor(recorder, window, *camera, settings.ImagingConfig);
 
     // Setup the motion control.
     ConfidenceOfficerLocator officerLocator(settings.OfficerClassId);
@@ -186,11 +175,11 @@ int main(int argc, char* argv[])
             switch(command->action)
             {
                 case StartOfficerTracking:
-                    RunOfficerTracking(motionController, camera, recorder, settings, window);                    
+                    RunOfficerTracking(motionController, camera, imageProcessor, settings);                    
                     break;
 
                 case StopOfficerTracking:
-                    FinishOfficerTracking(motionController, camera, recorder, settings, window);
+                    FinishOfficerTracking(motionController, camera, imageProcessor, settings);
                     break;
 
                 case SendKeyword:

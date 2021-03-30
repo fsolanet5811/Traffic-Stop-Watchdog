@@ -316,7 +316,7 @@ bool FlirCamera::TryConnect(string serialNumber, CameraPtr* camera)
     //CIntegerPtr numBufferNode = nodeMap.GetNode("StreamBufferCountManual");
     //int bufferCount = numBufferNode->GetValue();
     //numBufferNode->SetValue(10);
-
+    
     _isConnected = true;
     _connectedSerialNumber = serialNumber;
     *camera = connectedCamera;
