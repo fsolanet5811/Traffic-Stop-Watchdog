@@ -58,6 +58,7 @@ uint Settings::ReadLogFlags(Document& doc, string logFlagsName)
     logFlags |= ReadLogFlag(doc, logFlagsName, "Locking") << 10;
     logFlags |= ReadLogFlag(doc, logFlagsName, "Flir") << 11;
     logFlags |= ReadLogFlag(doc, logFlagsName, "RawSerialReceives") << 12;
+    logFlags |= ReadLogFlag(doc, logFlagsName, "LED") << 13;
     return logFlags;
 }
 

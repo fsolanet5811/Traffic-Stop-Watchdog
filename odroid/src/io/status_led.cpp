@@ -22,11 +22,10 @@ void StatusLED::StartFlashing(int flashesPerPause)
     if(IsEnabled() && !IsFlashing())
     {
         _isFlashing = true;
-        _flashFuture = async(launch::async, [this](int flashesPerPause)
+        _flashFuture = async(launch::async, [this]()
         {
-            RunFlash(flashesPerPause);
-        },
-        flashesPerPause);
+            RunFlash();
+        });
     }
 }
 
@@ -68,12 +67,13 @@ bool StatusLED::IsEnabled()
     return _isEnabled;
 }
 
-void StatusLED::RunFlash(int flashesPerPause)
+void StatusLED::RunFlash()
 {
     while(IsFlashing())
     {
-        // The last flash will not have a 
-        for(int i = 0; i < flashesPerPause - 1 && IsFlashing(); i++)
+        // The last flash will not have a small off time.
+        Log("Starting flash sequence of " + to_string(FlashesPerPause), LED);
+        for(int i = 0; i < FlashesPerPause - 1 && IsFlashing(); i++)
         {
             // First turn on.
             SetBrightness(LED_ON);
@@ -81,15 +81,13 @@ void StatusLED::RunFlash(int flashesPerPause)
             // Wait a bit so the light stays on for a bit.
             usleep(FLASH_ON_TIME);
 
-            // Break out asap.
-            if(!IsFlashing())
-            {
-                break;
-            }
 
-            // Turn off and wait for the next set.
-            SetBrightness(LED_OFF);
-            usleep(FLASH_OFF_TIME);
+            if(IsFlashing())
+            {
+                // Turn off and wait for the next set.
+                SetBrightness(LED_OFF);
+                usleep(FLASH_OFF_TIME);
+            }
         }
 
         // Break out asap.
@@ -98,18 +96,23 @@ void StatusLED::RunFlash(int flashesPerPause)
             break;
         }
 
-        // One last flash on.
-        SetBrightness(LED_ON);
-        usleep(FLASH_ON_TIME);
+        if(IsFlashing())
+        {
+            // One last flash on.
+            SetBrightness(LED_ON);
+            usleep(FLASH_ON_TIME);
+        }
+        
 
         // Here it is very important that we double check for the stopped flash.
-        if(!IsFlashing())
+        if(IsFlashing())
         {
-            break;
+            // Pause before the next set of flashes.
+            SetBrightness(LED_OFF);
+            usleep(PauseTime);
         }
 
-        // Pause before the next set of flashes.
-        usleep(FLASH_PAUSE_TIME);
+        Log("Flash sequence finished", LED);
     }
 }
 
@@ -121,7 +124,9 @@ void StatusLED::SetBrightness(uchar brightness)
     ledFileStream.open(_ledFile, fstream::out | fstream::trunc);
 
     // The value is written to the file as plain text.
-    ledFileStream << to_string(brightness);
+    string brightnessStr = to_string(brightness);
+    ledFileStream << brightnessStr;
+    Log("LED set to " + brightnessStr, LED);
 
     // Release the lock on the file.
     ledFileStream.close();

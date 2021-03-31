@@ -11,7 +11,6 @@
 #define LED_OFF 0
 #define FLASH_ON_TIME 200000
 #define FLASH_OFF_TIME 200000
-#define FLASH_PAUSE_TIME 750000
 
 using namespace Spinnaker;
 using namespace tsw::imaging;
@@ -199,7 +198,7 @@ namespace tsw::io
         bool _isFlashing;
         bool _isEnabled;
         future<void> _flashFuture;
-        void RunFlash(int flashesPerPause);
+        void RunFlash();
         void SetBrightness(uchar brightness);
     };
 }

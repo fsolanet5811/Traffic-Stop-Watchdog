@@ -35,7 +35,8 @@ namespace tsw::utilities
         Acknowledge = 0b1000000000,
         Locking = 0b10000000000,
         Flir = 0b100000000000,
-        RawSerialReceives = 0b1000000000000
+        RawSerialReceives = 0b1000000000000,
+        LED = 0b10000000000000
     };
 }
 
