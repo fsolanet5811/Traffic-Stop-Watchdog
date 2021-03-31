@@ -7,6 +7,12 @@
 #include <termios.h>
 #include <future>
 
+#define LED_ON 255
+#define LED_OFF 0
+#define FLASH_ON_TIME 200000
+#define FLASH_OFF_TIME 200000
+#define FLASH_PAUSE_TIME 750000
+
 using namespace Spinnaker;
 using namespace tsw::imaging;
 using namespace std;
@@ -173,5 +179,27 @@ namespace tsw::io
 
     protected:
         DeviceSerialPort* _commandPort;
+    };
+
+    class StatusLED
+    {
+    public:
+        StatusLED(string ledFile);
+        int FlashesPerPause;
+        useconds_t PauseTime;
+        void StartFlashing(int flashesPerPause);
+        void StartFlashing();
+        void StopFlashing(bool reset = true);
+        bool IsFlashing();
+        bool IsEnabled();
+        void SetEnabled(bool enabled);
+
+    private:
+        string _ledFile;
+        bool _isFlashing;
+        bool _isEnabled;
+        future<void> _flashFuture;
+        void RunFlash(int flashesPerPause);
+        void SetBrightness(uchar brightness);
     };
 }

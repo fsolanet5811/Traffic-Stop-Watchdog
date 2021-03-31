@@ -51,6 +51,8 @@ namespace tsw::io::settings
         bool MoveCamera;
         ImageProcessingConfig ImagingConfig;
         int FrameDisplayRefreshRate;
+        bool UseStatusLED;
+        string StatusLEDFile;
         void Load(string settingsFile);
 
     private:

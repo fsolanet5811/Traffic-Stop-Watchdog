@@ -32,15 +32,23 @@ DeviceSerialPort* ConnectToSerialPort(string serialPath, speed_t baudRate)
     }
 }
 
-FlirCamera* ConnectToCamera(string cameraSerialNumber)
+FlirCamera* ConnectToCamera(TswSettings& settings)
 {
     FlirCamera* camera = new FlirCamera();;
     while(true)
     {
         try
         {
-            Log("Connecting to camera " + cameraSerialNumber, Debug);
-            camera->Connect(cameraSerialNumber);
+            Log("Connecting to camera " + settings.CameraSerialNumber, Debug);
+            camera->Connect(settings.CameraSerialNumber);
+
+            // Configuring the camera is now part of the setup.
+            Log("Setting camera parameters", Debug);
+            camera->SetFrameHeight(settings.CameraFrameHeight);
+            camera->SetFrameWidth(settings.CameraFrameWidth);
+            camera->SetFrameRate(settings.CameraFrameRate);
+            Log("Camera parameters set", Debug);
+
             Log("Camera connected", Information);
             return camera;
         }
@@ -87,19 +95,22 @@ void RunOfficerTracking(CameraMotionController& motionController, FlirCamera* ca
     Log("Officer tracking started", Information | DeviceSerial | Recording | Officers);
 }
 
-void FinishOfficerTracking(CameraMotionController& motionController, FlirCamera* camera, ImageProcessor& imageProcessor, TswSettings& settings)
+void FinishOfficerTracking(CameraMotionController& motionController, FlirCamera* camera, ImageProcessor& imageProcessor, TswSettings& settings, StatusLED& led)
 {
     Log("Stopping officer tracking", Information | DeviceSerial | Recording | Officers);
            
     if(settings.MoveCamera)
     {
+        led.FlashesPerPause = 5;
         motionController.StopCameraMotionGuidance();
     }
     
     if(settings.MoveCamera || settings.ImagingConfig.recordFrames || settings.ImagingConfig.displayFrames)
     {
         // Start the processing first so that everything is setup for when we get the first frame.
+        led.FlashesPerPause = 6;
         imageProcessor.StopProcessing();
+        led.FlashesPerPause = 7;
         camera->StopLiveFeed();
     }
 
@@ -109,16 +120,28 @@ void FinishOfficerTracking(CameraMotionController& motionController, FlirCamera*
 int main(int argc, char* argv[])
 {
     // Initialize the settings.
+    // I wish we could do this after setting up the led, but we need the settings to set it up lol.
     string thisFile(argv[0]);
     string startingDir = thisFile.substr(0, thisFile.find_last_of('/'));
     string settingsFile = startingDir + "/tsw.json";
     Log("Loading settings from " + settingsFile, Information);
     TswSettings settings(settingsFile);
     Log("Settings loaded", Information);
+
+    // Setup the led as early as possible.
+    StatusLED led(settings.StatusLEDFile);
+    led.SetEnabled(settings.UseStatusLED);
+
+    // The initial flash setup is just one flash.
+    // I want to do this now in case we have a problem writing to the output.
+    // Since the app is going to be ran headless, we will try to use this to get a sense of what is going on in the program.
+    led.StartFlashing(1);
+
     PrintFile(settingsFile);
     ConfigureLog(settings.LogFlags);
 
     // Connect to the device port.
+    led.FlashesPerPause = 2;
     DeviceSerialPort* portThatCanTalkToMotors;
     CommandAgent* agent;
     if(settings.UseDeviceAdapter)
@@ -136,11 +159,11 @@ int main(int argc, char* argv[])
 
     portThatCanTalkToMotors->StartGathering();
 
+    // Serial port setup is done.
+    led.FlashesPerPause = 3;
+
     // Connect to the camera and attach the recorder and display window.
-    FlirCamera* camera = ConnectToCamera(settings.CameraSerialNumber);
-    camera->SetFrameHeight(settings.CameraFrameHeight);
-    camera->SetFrameWidth(settings.CameraFrameWidth);
-    camera->SetFrameRate(settings.CameraFrameRate);
+    FlirCamera* camera = ConnectToCamera(settings);    
 
     Size frameSize;
     frameSize.height = camera->GetFrameHeight();
@@ -160,6 +183,9 @@ int main(int argc, char* argv[])
     motionController.CameraFramesToSkip = settings.CameraFramesToSkipMoving;
     motionController.HomeAngles = settings.HomeAngles;
 
+    // This will mark that we are just chilling.
+    led.FlashesPerPause = 4;
+
     // Now here comes the actual processing.
     // For now, if it messes up, we will just display an error and 
     try
@@ -175,11 +201,17 @@ int main(int argc, char* argv[])
             switch(command->action)
             {
                 case StartOfficerTracking:
+                    // A slower pause will have us writing less to the disk to max processing on the images.
+                    led.FlashesPerPause = 1;
+                    led.PauseTime = 2000000;
                     RunOfficerTracking(motionController, camera, imageProcessor, settings);                    
                     break;
 
                 case StopOfficerTracking:
-                    FinishOfficerTracking(motionController, camera, imageProcessor, settings);
+                    // Decreae the super long pause.
+                    led.PauseTime = 750000;
+                    FinishOfficerTracking(motionController, camera, imageProcessor, settings, led);
+                    led.FlashesPerPause = 4;
                     break;
 
                 case SendKeyword:
@@ -215,6 +247,7 @@ int main(int argc, char* argv[])
     }
 
     delete agent;
+    delete camera;
 
     return 0;  
 }

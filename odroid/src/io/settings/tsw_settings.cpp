@@ -47,6 +47,8 @@ void TswSettings::Load(string settingsFile)
     MoveCamera = doc["MoveCamera"].GetBool();
     FrameDisplayRefreshRate = doc["FrameDisplayRefreshRate"].GetInt();
     ImagingConfig = ReadImageProcessingConfig(doc, "ImagingConfig");
+    UseStatusLED = doc["UseStatusLED"].GetBool();
+    StatusLEDFile = doc["StatusLEDFile"].GetString();
 
     // Get the log settings.
     LogFlags = ReadLogFlags(doc, "LogFlags");
