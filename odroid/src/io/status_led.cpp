@@ -1,4 +1,5 @@
 #include "io.hpp"
+#include <fstream>
 
 using namespace tsw::io;
 
