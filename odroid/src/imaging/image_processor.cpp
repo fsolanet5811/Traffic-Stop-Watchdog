@@ -5,11 +5,12 @@
 using namespace tsw::imaging;
 using namespace tsw::io::settings;
 
-ImageProcessor::ImageProcessor(Recorder& recorder, DisplayWindow& window, FlirCamera& camera, ImageProcessingConfig config)
+ImageProcessor::ImageProcessor(Recorder& recorder, DisplayWindow& window, FlirCamera& camera, OfficerLocator& officerLocator, ImageProcessingConfig config)
 {
     _recorder = &recorder;
     _window = &window;
     _camera = &camera;
+    _officerLocator = &officerLocator;
     _config = config;
     _isProcessing = false;
 }
@@ -98,13 +99,13 @@ Mat ImageProcessor::MatFromImage(ImagePtr image)
     if(_config.showBoxes)
     {
         // Draw the highest confidence bounding box.
-        InferenceBoundingBoxResult boxRes = image->GetChunkData().GetInferenceBoundingBoxResult();
-        if(boxRes.GetBoxCount() > 0)
+        vector<InferenceBoundingBox> boxRes = _officerLocator->GetOfficerLocations(image);
+        if(boxRes.size() > 0)
         {
-            InferenceBoundingBox bestBox = boxRes.GetBoxAt(0);
-            for(int i = 1; i < boxRes.GetBoxCount(); i++)
+            InferenceBoundingBox bestBox = boxRes.at(0);
+            for(int i = 1; i < boxRes.size(); i++)
             {
-                InferenceBoundingBox curBox = boxRes.GetBoxAt(i);
+                InferenceBoundingBox curBox = boxRes.at(i);
                 if(curBox.confidence > bestBox.confidence);
                 {
                     bestBox = curBox;

@@ -123,10 +123,10 @@ namespace tsw::imaging
         Vector2 SafeRegionProportion;
         float ConfidenceThreshold;
         OfficerDirection FindOfficer(ImagePtr image);
+        vector<InferenceBoundingBox> GetOfficerLocations(ImagePtr image);
 
     protected:
         OfficerLocator(int16_t officerClassId);
-        vector<InferenceBoundingBox> GetOfficerLocations(ImagePtr image);
         virtual Vector2* GetDesiredOfficerLocation(ImagePtr image) = 0;    
 
     private:
@@ -186,7 +186,7 @@ namespace tsw::imaging
     class ImageProcessor
     {
     public:
-        ImageProcessor(Recorder& recorder, DisplayWindow& window, FlirCamera& camera, ImageProcessingConfig config);
+        ImageProcessor(Recorder& recorder, DisplayWindow& window, FlirCamera& camera, OfficerLocator& officerLocator, ImageProcessingConfig config);
         void StartProcessing();
         void StopProcessing();
         bool IsProcessing();
@@ -195,6 +195,7 @@ namespace tsw::imaging
         Recorder* _recorder;
         DisplayWindow* _window;
         FlirCamera* _camera;
+        OfficerLocator* _officerLocator;
         uint _livefeedCallbackKey;
         bool _isProcessing;
         ImageProcessingConfig _config;

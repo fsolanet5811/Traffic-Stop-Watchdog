@@ -170,7 +170,6 @@ int main(int argc, char* argv[])
     frameSize.width = camera->GetFrameWidth();
     Recorder recorder(frameSize, camera->GetFrameRate());
     DisplayWindow window("Officer Footage", settings.FrameDisplayRefreshRate);
-    ImageProcessor imageProcessor(recorder, window, *camera, settings.ImagingConfig);
 
     // Setup the motion control.
     ConfidenceOfficerLocator officerLocator(settings.OfficerClassId);
@@ -179,6 +178,9 @@ int main(int argc, char* argv[])
     officerLocator.ConfidenceThreshold = settings.OfficerConfidenceThreshold;
 
     MotorController motorController(*portThatCanTalkToMotors, settings.PanConfig, settings.TiltConfig);
+
+    // This will handle displaying and recording when we get images.
+    ImageProcessor imageProcessor(recorder, window, *camera, officerLocator, settings.ImagingConfig);
 
     CameraMotionController motionController(*camera, officerLocator, motorController);
     motionController.CameraFramesToSkip = settings.CameraFramesToSkipMoving;
