@@ -53,6 +53,7 @@ namespace tsw::io::settings
         int FrameDisplayRefreshRate;
         bool UseStatusLED;
         string StatusLEDFile;
+        float OfficerConfidenceThreshold;
         void Load(string settingsFile);
 
     private:

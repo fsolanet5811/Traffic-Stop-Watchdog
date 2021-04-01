@@ -121,6 +121,7 @@ namespace tsw::imaging
         int16_t OfficerClassId;
         Vector2 TargetRegionProportion;
         Vector2 SafeRegionProportion;
+        float ConfidenceThreshold;
         OfficerDirection FindOfficer(ImagePtr image);
 
     protected:

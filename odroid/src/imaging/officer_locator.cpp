@@ -9,6 +9,9 @@ using namespace Spinnaker;
 OfficerLocator::OfficerLocator(int16_t officerClassId)
 {
     OfficerClassId = officerClassId;
+
+    // We accept all boxes by default.
+    ConfidenceThreshold = 0;
 }
 
 OfficerDirection OfficerLocator::FindOfficer(ImagePtr image)
@@ -72,9 +75,9 @@ vector<InferenceBoundingBox> OfficerLocator::GetOfficerLocations(ImagePtr image)
     InferenceBoundingBoxResult boxRes = image->GetChunkData().GetInferenceBoundingBoxResult();
     for(int i = 0; i < boxRes.GetBoxCount(); i++)
     {
-        // We only want the boxes that coorespond to the officer class.
+        // We only want the boxes that coorespond to the officer class and have a certain amount of confidence.
         InferenceBoundingBox box = boxRes.GetBoxAt(i);
-        if(box.classId == OfficerClassId)
+        if(box.classId == OfficerClassId && box.confidence >= ConfidenceThreshold)
         {
             boxes.push_back(box);
         }

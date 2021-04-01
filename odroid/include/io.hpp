@@ -29,6 +29,8 @@ namespace tsw::io
         void Clear();
         void Close();
         ~SerialPort();
+        static string ToHex(uchar* bytes, int numBytes);
+        
     private:
 	    speed_t _baudRate;
         int _port;

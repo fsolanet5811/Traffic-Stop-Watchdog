@@ -87,14 +87,14 @@ int SerialPort::Read(unsigned char* buffer, int bytesToRead)
         throw runtime_error("Failed to read bytes.");
     }
 
-	Log("Read " + to_string(bytesRead) + " bytes.", RawSerial);
+	Log("Read " + to_string(bytesRead) + " bytes. (" + ToHex(buffer, bytesRead) + ")", RawSerial);
 
     return bytesRead;
 }
 
 int SerialPort::Write(unsigned char* data, int bytesToWrite)
 {
-    Log("Trying to write " + to_string(bytesToWrite) + " bytes.", RawSerial);
+    Log("Trying to write " + to_string(bytesToWrite) + " bytes (" + ToHex(data, bytesToWrite) + ")", RawSerial);
     int bytesWritten = write(_port, data, bytesToWrite);
 
     if(bytesWritten == -1)
@@ -120,4 +120,22 @@ void SerialPort::Close()
 SerialPort::~SerialPort()
 {
     Close();
+}
+
+string SerialPort::ToHex(uchar* bytes, int numBytes)
+{
+    stringstream ss;
+    int i;
+    for(i = 0; i < numBytes - 1; i++)
+    {
+        ss << hex << bytes[i];
+        ss << ' ';
+    }
+
+    if(numBytes > 0)
+    {
+        ss << hex << bytes[i];
+    }
+    
+    return ss.str();
 }

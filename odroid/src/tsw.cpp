@@ -176,6 +176,7 @@ int main(int argc, char* argv[])
     ConfidenceOfficerLocator officerLocator(settings.OfficerClassId);
     officerLocator.TargetRegionProportion = settings.TargetRegionProportion;
     officerLocator.SafeRegionProportion = settings.SafeRegionProportion;
+    officerLocator.ConfidenceThreshold = settings.OfficerConfidenceThreshold;
 
     MotorController motorController(*portThatCanTalkToMotors, settings.PanConfig, settings.TiltConfig);
 
