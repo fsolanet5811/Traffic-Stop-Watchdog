@@ -50,6 +50,7 @@ void TswSettings::Load(string settingsFile)
     UseStatusLED = doc["UseStatusLED"].GetBool();
     StatusLEDFile = doc["StatusLEDFile"].GetString();
     OfficerConfidenceThreshold = doc["OfficerConfidenceThreshold"].GetFloat();
+    CameraBufferCount = doc["CameraBufferCount"].GetInt();
 
     // Get the log settings.
     LogFlags = ReadLogFlags(doc, "LogFlags");

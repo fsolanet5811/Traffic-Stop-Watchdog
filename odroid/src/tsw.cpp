@@ -34,7 +34,7 @@ DeviceSerialPort* ConnectToSerialPort(string serialPath, speed_t baudRate)
 
 FlirCamera* ConnectToCamera(TswSettings& settings)
 {
-    FlirCamera* camera = new FlirCamera();;
+    FlirCamera* camera = new FlirCamera(settings.CameraBufferCount);
     while(true)
     {
         try
@@ -126,7 +126,7 @@ int main(int argc, char* argv[])
     string settingsFile = startingDir + "/tsw.json";
     Log("Loading settings from " + settingsFile, Information);
     TswSettings settings(settingsFile);
-    Log("Settings loaded", Information);
+    Log("Settings loaded", Information);    
 
     // Setup the led as early as possible.
     StatusLED led(settings.StatusLEDFile);

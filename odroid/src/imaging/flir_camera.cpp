@@ -25,7 +25,7 @@ class LoggingCallback : Spinnaker::LoggingEventHandler
     }
 };
 
-FlirCamera::FlirCamera()
+FlirCamera::FlirCamera(int bufferCount)
 {
     LoggingCallback* logCallback = new LoggingCallback();
     _system = System::GetInstance();
@@ -34,6 +34,7 @@ FlirCamera::FlirCamera()
     _nextLiveFeedKey = 1;
     _isLiveFeedOn = false;
     _liveFeedLock.Name = "LFD";
+    _bufferCount = bufferCount;
 
     // These are the settings that the caller desires. Null values indicate that they have not been set yet.
     _userFrameRate = nullptr;
@@ -306,17 +307,32 @@ bool FlirCamera::TryConnect(string serialNumber, CameraPtr* camera)
     connectedCamera->ChunkEnable = true;
     connectedCamera->ChunkModeActive = true;
     connectedCamera->RgbTransformLightSource = RgbTransformLightSource_General;
-
+    
     // This will make it so that we always grab the newest image.
     INodeMap& nodeMap = connectedCamera->GetTLStreamNodeMap();
     CEnumerationPtr bufferNode = nodeMap.GetNode("StreamBufferHandlingMode");
     bufferNode->SetIntValue(StreamBufferHandlingMode_NewestOnly);
 
+    NodeList_t nodes;
+    nodeMap.GetNodes(nodes);
+    for(int i = 0; i < nodes.size(); i++)
+    {
+        cout << nodes.at(i)->GetName() << endl;
+    }
+
     // For some reason they only give us a few buffers, We want more!
-    //CIntegerPtr numBufferNode = nodeMap.GetNode("StreamBufferCountManual");
-    //int bufferCount = numBufferNode->GetValue();
-    //numBufferNode->SetValue(10);
-    
+    CEnumerationPtr bufferModeNode = nodeMap.GetNode("StreamBufferCountMode");
+    bufferModeNode->SetIntValue(StreamBufferCountMode_Manual);
+    CIntegerPtr bufferMaxNode = nodeMap.GetNode("StreamBufferCountMax");
+    int maxBuffers = bufferMaxNode->GetValue();
+    CIntegerPtr numBufferNode = nodeMap.GetNode("StreamBufferCountManual");
+
+    // We cannot provide more buffers than allowed though.
+    int bufferCount = min(maxBuffers, _bufferCount);
+    Log("Setting number of camera buffers to " + to_string(bufferCount), Frames);
+    numBufferNode->SetValue(bufferCount);
+    Log("Number of camera buffers set to " + to_string(bufferCount), Frames);
+
     _isConnected = true;
     _connectedSerialNumber = serialNumber;
     *camera = connectedCamera;

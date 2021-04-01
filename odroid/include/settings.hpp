@@ -54,6 +54,7 @@ namespace tsw::io::settings
         bool UseStatusLED;
         string StatusLEDFile;
         float OfficerConfidenceThreshold;
+        int CameraBufferCount;
         void Load(string settingsFile);
 
     private:

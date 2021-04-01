@@ -50,7 +50,7 @@ namespace tsw::imaging
     class FlirCamera
     {
     public:
-        FlirCamera();
+        FlirCamera(int bufferCount);
         ~FlirCamera();
         vector<string> FindDevices();
         void Connect(string serialNumber);
@@ -83,6 +83,7 @@ namespace tsw::imaging
         int* _userFrameHeight;
         int* _userFrameWidth;
         double* _userFrameRate;
+        int _bufferCount;
         RgbTransformLightSourceEnums* _userFilter;
 
         void RunLiveFeed();
