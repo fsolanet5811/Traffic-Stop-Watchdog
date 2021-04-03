@@ -185,6 +185,7 @@ int main(int argc, char* argv[])
     CameraMotionController motionController(*camera, officerLocator, motorController);
     motionController.CameraFramesToSkip = settings.CameraFramesToSkipMoving;
     motionController.HomeAngles = settings.HomeAngles;
+    motionController.AngleXBounds = settings.AngleXBounds;
 
     // This will mark that we are just chilling.
     led.FlashesPerPause = 4;

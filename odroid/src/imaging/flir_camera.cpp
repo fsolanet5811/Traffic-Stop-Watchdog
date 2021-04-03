@@ -313,13 +313,6 @@ bool FlirCamera::TryConnect(string serialNumber, CameraPtr* camera)
     CEnumerationPtr bufferNode = nodeMap.GetNode("StreamBufferHandlingMode");
     bufferNode->SetIntValue(StreamBufferHandlingMode_NewestOnly);
 
-    NodeList_t nodes;
-    nodeMap.GetNodes(nodes);
-    for(int i = 0; i < nodes.size(); i++)
-    {
-        cout << nodes.at(i)->GetName() << endl;
-    }
-
     // For some reason they only give us a few buffers, We want more!
     CEnumerationPtr bufferModeNode = nodeMap.GetNode("StreamBufferCountMode");
     bufferModeNode->SetIntValue(StreamBufferCountMode_Manual);

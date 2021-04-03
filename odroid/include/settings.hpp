@@ -43,6 +43,7 @@ namespace tsw::io::settings
         Vector2 SafeRegionProportion;
         int CameraFramesToSkipMoving;
 	    Vector2 HomeAngles;
+        Bounds AngleXBounds;
         double CameraFrameRate;
         int CameraFrameWidth;
         int CameraFrameHeight;

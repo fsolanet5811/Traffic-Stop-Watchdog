@@ -13,6 +13,8 @@ CameraMotionController::CameraMotionController(FlirCamera& camera, OfficerLocato
     CameraFramesToSkip = 0;
     HomeAngles.x = 0;
     HomeAngles.y = 0;
+    AngleXBounds.min = 0;
+    AngleXBounds.max = 359;
 
     // These are the values for the firefly dl.
     HorizontalFov = 44.8;
@@ -115,24 +117,14 @@ void CameraMotionController::OfficerSearch()
             if(_motorController->TryReadMessage(&temp))
             {
                 // We made it, at this point the officer probably is not there, so just go home.
-                _searchState = MovingToHomePosition;
-                GoToHome();
-            }
-            break;
-
-        case MovingToHomePosition:
-            // Check if we are there yet.
-            if(_motorController->TryReadMessage(&temp))
-            {
-                // We made it, start circling.
                 _searchState = Circling;
-                _motorController->SendAsyncRelativeMoveCommand(20, 0);
+                MoveToMin();
             }
             break;
 
         case Circling:
             // Keep circling.
-            _motorController->SendAsyncRelativeMoveCommand(20, 0);
+            Circle();
             break;
     }
 }
@@ -155,9 +147,9 @@ void CameraMotionController::CheckLastSeen()
     }
     else
     {
-        // We have never seen the officer. Just go to home and start circling.
-        _searchState = MovingToHomePosition;
-        GoToHome();
+        // We have never seen the officer. Just start circling.
+        _searchState = Circling;
+        MoveToMin();
     }
 }
 
@@ -165,4 +157,33 @@ void CameraMotionController::GoToHome()
 {
     Log("Going to home position", Movements);
     _motorController->SendSyncAbsoluteMoveCommand(HomeAngles.x, HomeAngles.y);
+}
+
+void CameraMotionController::Circle()
+{
+    DeviceMessage response;
+    if(_motorController->TryReadMessage(&response))
+    {
+        // They made it to the end. Now go to the other end.
+        if(_movingTowardsMin)
+        {
+            MoveToMax();
+        }
+        else
+        {
+            MoveToMin();
+        }
+    }
+}
+
+void CameraMotionController::MoveToMin()
+{
+    _movingTowardsMin = true;
+    _motorController->SendSyncAbsoluteMoveCommand(AngleXBounds.min, HomeAngles.y);
+}
+
+void CameraMotionController::MoveToMax()
+{
+    _movingTowardsMin = false;
+    _motorController->SendSyncAbsoluteMoveCommand(AngleXBounds.max, HomeAngles.y);
 }

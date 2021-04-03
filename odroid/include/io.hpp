@@ -116,6 +116,7 @@ namespace tsw::io
         double VerticalFov;
         double HorizontalFov;
         Vector2 HomeAngles;
+        Bounds AngleXBounds;
         uint CameraFramesToSkip;
         void StartCameraMotionGuidance();
         void StopCameraMotionGuidance();
@@ -129,8 +130,7 @@ namespace tsw::io
         {
             NotSearching = 0,
             CheckingLastSeen = 1,
-            MovingToHomePosition = 2,
-            Circling = 3
+            Circling = 2
         };
         FlirCamera* _camera;
         OfficerLocator* _officerLocator;
@@ -139,12 +139,15 @@ namespace tsw::io
         uint _cameraLivefeedCallbackKey;
         OfficerSearchState _searchState;
         OfficerDirection _lastSeen;
+        bool _movingTowardsMin;
         
         void ResetSearchState();
         void SendMoveCommand(uchar specifierByte, double horizontal, double vertical, string moveName);
         void CheckLastSeen();
         void OnLivefeedImageReceived(LiveFeedCallbackArgs args);
-        
+        void MoveToMin();
+        void MoveToMax();
+        void Circle();
     };
 
     enum CommandAction

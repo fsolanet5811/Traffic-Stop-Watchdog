@@ -53,7 +53,7 @@ void MotorController::SendMoveCommand(uchar specifierByte, double horizontal, do
 
     // Wait for the acknowledge (not the same as a synch response).
     // It is possible that the read response is not an ack but a success/failure from a previous move.
-    while(false)
+    while(true)
     {
         Log("Reading move command acknowledge", Acknowledge);
         DeviceMessage message = _commandPort->ReadFromDevice(Motors);
