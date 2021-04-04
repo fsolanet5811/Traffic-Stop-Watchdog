@@ -172,10 +172,13 @@ int main(int argc, char* argv[])
     DisplayWindow window("Officer Footage", settings.FrameDisplayRefreshRate);
 
     // Setup the motion control.
-    ConfidenceOfficerLocator officerLocator(settings.OfficerClassId);
+    SmartOfficerLocator officerLocator(settings.OfficerClassId);
     officerLocator.TargetRegionProportion = settings.TargetRegionProportion;
     officerLocator.SafeRegionProportion = settings.SafeRegionProportion;
     officerLocator.ConfidenceThreshold = settings.OfficerConfidenceThreshold;
+    officerLocator.MaxHSV = settings.MaxOfficerHSV;
+    officerLocator.MinHSV = settings.MinOfficerHSV;
+    officerLocator.OfficerThreshold = settings.OfficerThreshold;
 
     MotorController motorController(*portThatCanTalkToMotors, settings.PanConfig, settings.TiltConfig);
 

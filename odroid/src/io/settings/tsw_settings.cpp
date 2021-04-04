@@ -52,6 +52,9 @@ void TswSettings::Load(string settingsFile)
     StatusLEDFile = doc["StatusLEDFile"].GetString();
     OfficerConfidenceThreshold = doc["OfficerConfidenceThreshold"].GetFloat();
     CameraBufferCount = doc["CameraBufferCount"].GetInt();
+    MinOfficerHSV = ReadHSV(doc, "MinOfficerHSV");
+    MaxOfficerHSV = ReadHSV(doc, "MaxOfficerHSV");
+    OfficerThreshold = doc["OfficerThreshold"].GetDouble();
 
     // Get the log settings.
     LogFlags = ReadLogFlags(doc, "LogFlags");

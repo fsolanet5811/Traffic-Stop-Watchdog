@@ -4,6 +4,7 @@
 #include "filereadstream.h"
 
 using namespace tsw::io::settings;
+using namespace cv;
 
 void Settings::LoadJsonFile(Document* doc, string jsonFile)
 {
@@ -82,6 +83,15 @@ ImageProcessingConfig Settings::ReadImageProcessingConfig(Document& doc, string 
     config.recordFrames = doc[imageProcessingConfigName.c_str()]["RecordFrames"].GetBool();
     config.showBoxes = doc[imageProcessingConfigName.c_str()]["ShowBoxes"].GetBool();
     return config;
+}
+
+Scalar Settings::ReadHSV(Document& doc, string hsvName)
+{
+    Scalar hsv;
+    hsv[0] = doc[hsvName.c_str()]["H"].GetDouble();
+    hsv[1] = doc[hsvName.c_str()]["S"].GetDouble();
+    hsv[2] = doc[hsvName.c_str()]["V"].GetDouble();
+    return hsv;
 }
 
 speed_t Settings::ParseBaudRate(int baudRate)

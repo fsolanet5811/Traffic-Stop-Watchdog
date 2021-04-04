@@ -66,10 +66,10 @@ OfficerDirection OfficerLocator::FindOfficer(ImagePtr image)
     return res;
 }
 
-vector<InferenceBoundingBox> OfficerLocator::GetOfficerLocations(ImagePtr image)
+vector<OfficerInferenceBox> OfficerLocator::GetOfficerLocations(ImagePtr image)
 {
     // This will hold all of the bounding boxes.
-    vector<InferenceBoundingBox> boxes;
+    vector<OfficerInferenceBox> boxes;
 
     // Iterate over all of the boxes and add them to our vector;
     InferenceBoundingBoxResult boxRes = image->GetChunkData().GetInferenceBoundingBoxResult();
@@ -79,7 +79,16 @@ vector<InferenceBoundingBox> OfficerLocator::GetOfficerLocations(ImagePtr image)
         InferenceBoundingBox box = boxRes.GetBoxAt(i);
         if(box.classId == OfficerClassId && box.confidence >= ConfidenceThreshold)
         {
-            boxes.push_back(box);
+            OfficerInferenceBox officerBox;
+            officerBox.confidence = box.confidence;
+
+            // The coordinates need to be cleaned up because flir thought it would be a cool idea to allow them to exist outside the frame!
+            officerBox.bottomRightX = CleanCoordinate(box.rect.bottomRightXCoord, image->GetHeight());
+            officerBox.bottomRightY = CleanCoordinate(box.rect.bottomRightYCoord, image->GetHeight());
+            officerBox.topLeftX = CleanCoordinate(box.rect.topLeftXCoord, image->GetHeight());
+            officerBox.topLeftY = CleanCoordinate(box.rect.topLeftYCoord, image->GetHeight());
+
+            boxes.push_back(officerBox);
         }
     }
 
@@ -120,4 +129,9 @@ bool OfficerLocator::IsPointInRegion(Vector2 location, Vector2 region, ImagePtr 
     }
 
     return false;
+}
+
+short OfficerLocator::CleanCoordinate(short coordinate, short max)
+{
+    return std::max(std::min(max, coordinate), (short)0);
 }

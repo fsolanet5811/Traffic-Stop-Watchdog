@@ -47,6 +47,16 @@ namespace tsw::imaging
         bool showBoxes;
     };
 
+    struct OfficerInferenceBox
+    {
+        short topLeftX;
+        short topLeftY;
+        short bottomRightX;
+        short bottomRightY;
+        float confidence;
+    };
+    
+
     class FlirCamera
     {
     public:
@@ -124,7 +134,7 @@ namespace tsw::imaging
         Vector2 SafeRegionProportion;
         float ConfidenceThreshold;
         OfficerDirection FindOfficer(ImagePtr image);
-        vector<InferenceBoundingBox> GetOfficerLocations(ImagePtr image);
+        vector<OfficerInferenceBox> GetOfficerLocations(ImagePtr image);
 
     protected:
         OfficerLocator(int16_t officerClassId);
@@ -141,6 +151,7 @@ namespace tsw::imaging
         RegionLocation _lastLocation;
         RegionLocation GetRegionLocation(Vector2 location, ImagePtr image);
         static bool IsPointInRegion(Vector2 location, Vector2 region, ImagePtr image);
+        static short CleanCoordinate(short coordinate, short max);
     };
 
     class ConfidenceOfficerLocator : public OfficerLocator
@@ -148,6 +159,18 @@ namespace tsw::imaging
     public:
         ConfidenceOfficerLocator(int16_t OfficerClassId);
 
+    protected:
+        Vector2* GetDesiredOfficerLocation(ImagePtr image);
+    };
+
+    class SmartOfficerLocator : public OfficerLocator
+    {
+    public:
+        SmartOfficerLocator(int16_t OfficerClassId);
+        Scalar MinHSV;
+        Scalar MaxHSV;
+        double OfficerThreshold;
+    
     protected:
         Vector2* GetDesiredOfficerLocation(ImagePtr image);
     };

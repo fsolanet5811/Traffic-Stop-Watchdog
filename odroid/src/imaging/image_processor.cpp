@@ -88,24 +88,26 @@ Mat ImageProcessor::MatFromImage(ImagePtr image)
 {
     // Put the pointer into an array of bytes.
     unsigned char* data = (unsigned char*)image->GetData();
-    vector<unsigned char> imageBytes(data, data + image->GetImageSize());
-
     Mat m(image->GetHeight(), image->GetWidth(), CV_8UC3, data);
-
 
     // Opencv interperets the data as bgr instead of rgb, so we gotta convert it.
     cvtColor(m, m, COLOR_BGR2RGB);
 
+    //Scalar min(85, 76, 127);
+    //Scalar max(124, 255, 255);
+
+    //inRange(m, min, max, m);
+
     if(_config.showBoxes)
     {
         // Draw the highest confidence bounding box.
-        vector<InferenceBoundingBox> boxRes = _officerLocator->GetOfficerLocations(image);
+        vector<OfficerInferenceBox> boxRes = _officerLocator->GetOfficerLocations(image);
         if(boxRes.size() > 0)
         {
-            InferenceBoundingBox bestBox = boxRes.at(0);
+            OfficerInferenceBox bestBox = boxRes.at(0);
             for(int i = 1; i < boxRes.size(); i++)
             {
-                InferenceBoundingBox curBox = boxRes.at(i);
+                OfficerInferenceBox curBox = boxRes[i];
                 if(curBox.confidence > bestBox.confidence);
                 {
                     bestBox = curBox;
@@ -113,8 +115,8 @@ Mat ImageProcessor::MatFromImage(ImagePtr image)
             }
 
             // Create the rectange in cv language.
-            Point topLeft(bestBox.rect.topLeftXCoord, bestBox.rect.topLeftYCoord);
-            Point bottomRight(bestBox.rect.bottomRightXCoord, bestBox.rect.bottomRightYCoord);
+            Point topLeft(bestBox.topLeftX, bestBox.topLeftY);
+            Point bottomRight(bestBox.bottomRightX, bestBox.bottomRightY);
             
             // This is what puts it on the mat.
             rectangle(m, topLeft, bottomRight, Scalar(255, 0, 0));

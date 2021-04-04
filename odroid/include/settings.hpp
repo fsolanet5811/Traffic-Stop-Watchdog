@@ -22,6 +22,7 @@ namespace tsw::io::settings
         static uint ReadLogFlags(Document& doc, string logFlagsName);
         static SerialConfig ReadSerialConfig(Document& doc, string serialConfigName);
         static ImageProcessingConfig ReadImageProcessingConfig(Document& doc, string imageProcessingConfigName);
+        static Scalar ReadHSV(Document& doc, string hsvName);
 
     private:
         static bool ReadLogFlag(Document& doc, string logFlagsName, string flagName);
@@ -56,6 +57,9 @@ namespace tsw::io::settings
         string StatusLEDFile;
         float OfficerConfidenceThreshold;
         int CameraBufferCount;
+        Scalar MinOfficerHSV;
+        Scalar MaxOfficerHSV;
+        double OfficerThreshold;
         void Load(string settingsFile);
 
     private:
