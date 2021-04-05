@@ -83,9 +83,9 @@ vector<OfficerInferenceBox> OfficerLocator::GetOfficerLocations(ImagePtr image)
             officerBox.confidence = box.confidence;
 
             // The coordinates need to be cleaned up because flir thought it would be a cool idea to allow them to exist outside the frame!
-            officerBox.bottomRightX = CleanCoordinate(box.rect.bottomRightXCoord, image->GetHeight() - 1);
+            officerBox.bottomRightX = CleanCoordinate(box.rect.bottomRightXCoord, image->GetWidth() - 1);
             officerBox.bottomRightY = CleanCoordinate(box.rect.bottomRightYCoord, image->GetHeight() - 1);
-            officerBox.topLeftX = CleanCoordinate(box.rect.topLeftXCoord, image->GetHeight() - 1);
+            officerBox.topLeftX = CleanCoordinate(box.rect.topLeftXCoord, image->GetWidth() - 1);
             officerBox.topLeftY = CleanCoordinate(box.rect.topLeftYCoord, image->GetHeight() - 1);
 
             boxes.push_back(officerBox);
