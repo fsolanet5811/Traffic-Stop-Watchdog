@@ -16,6 +16,10 @@ CameraMotionController::CameraMotionController(FlirCamera& camera, OfficerLocato
     AngleXBounds.min = 0;
     AngleXBounds.max = 359;
 
+    // The default speed will be half way.
+    MotorSpeeds.x = 127;
+    MotorSpeeds.x = 127;
+
     // These are the values for the firefly dl.
     HorizontalFov = 44.8;
     VerticalFov = 34.6;
@@ -37,6 +41,9 @@ void CameraMotionController::StartCameraMotionGuidance()
     {
         // Activate the motors.
         _motorController->Activate();
+
+        // Set the speeds.
+        _motorController->SetSpeeds(MotorSpeeds);
 
         _isGuidingCameraMotion = true;
         _cameraLivefeedCallbackKey = _camera->RegisterLiveFeedCallback(bind(&CameraMotionController::OnLivefeedImageReceived, this, placeholders::_1));

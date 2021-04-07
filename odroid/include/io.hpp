@@ -48,6 +48,29 @@ namespace tsw::io
         vector<uchar> bytes;
     };
 
+    struct ByteVector2
+    {
+        uchar x;
+        uchar y;
+    };
+
+    enum CommandAction
+    {
+        Ping = 1,
+        StartOfficerTracking = 2,
+        StopOfficerTracking = 3,
+        SendKeyword = 4,
+        RelativeMoveSynchronous = 5,
+        RelativeMoveAsynchronous = 6,
+        AbsoluteMoveSynchronous = 7,
+        AbsoluteMoveAsynchronous = 8,
+        Activate = 9,
+        Deactivate = 10,
+        SetSpeeds = 11,
+        Acknowledge = 15
+    };
+
+
     class DeviceSerialPort
     {
     public:
@@ -56,9 +79,8 @@ namespace tsw::io
         void StopGathering();
         bool IsGathering();
         DeviceMessage ReadFromDevice(Device device);
-        void WriteToDevice(Device device, vector<uchar> data);
-        void WriteToDevice(vector<uchar> formattedData);
-        void WriteToDevice(uchar formattedByte);
+        void WriteToDevice(Device device, CommandAction command, vector<uchar> data);
+        void WriteToDevice(Device device, CommandAction command);
         bool TryReadFromDevice(Device device, DeviceMessage* readMessage);
         ~DeviceSerialPort();
 
@@ -69,6 +91,7 @@ namespace tsw::io
         vector<DeviceMessage> _buffer;
         SmartLock _bufferLock;
         void Gather();
+        void WriteToDevice(vector<uchar> formattedData);
     };
 
     struct Bounds
@@ -101,11 +124,12 @@ namespace tsw::io
         void SendAsyncAbsoluteMoveCommand(double horizontal, double vertical);
         void Activate();
         void Deactivate();
+        void SetSpeeds(ByteVector2 speeds);
         bool TryReadMessage(DeviceMessage* message);
 
     private:
         DeviceSerialPort* _commandPort;
-        void SendMoveCommand(uchar specifierByte, double horizontal, double vertical, string moveName);
+        void SendMoveCommand(CommandAction moveType, double horizontal, double vertical, string moveName);
         static int AngleToMotorValue(double angle, MotorConfig config);
     };
 
@@ -118,6 +142,7 @@ namespace tsw::io
         Vector2 HomeAngles;
         Bounds AngleXBounds;
         uint CameraFramesToSkip;
+        ByteVector2 MotorSpeeds;
         void StartCameraMotionGuidance();
         void StopCameraMotionGuidance();
         bool IsGuidingCameraMotion();
@@ -140,7 +165,6 @@ namespace tsw::io
         OfficerSearchState _searchState;
         OfficerDirection _lastSeen;
         bool _movingTowardsMin;
-        
         void ResetSearchState();
         void SendMoveCommand(uchar specifierByte, double horizontal, double vertical, string moveName);
         void CheckLastSeen();
@@ -148,18 +172,6 @@ namespace tsw::io
         void MoveToMin();
         void MoveToMax();
         void Circle();
-    };
-
-    enum CommandAction
-    {
-        Ping = 1,
-        StartOfficerTracking = 2,
-        StopOfficerTracking = 3,
-        SendKeyword = 4,
-        RelativeMoveSynchronous = 5,
-        RelativeMoveAsynchronous = 6,
-        AbsoluteMoveSynchronous = 7,
-        AbsoluteMoveAsynchronous = 8,
     };
 
     struct Command
@@ -178,7 +190,6 @@ namespace tsw::io
         void SendCommand(Device device, Command* command);
         void AcknowledgeReceived(Device device);
         vector<uchar> ReadResponse(Device device);
-        void SendResponse(uchar formattedResponse);
         ~CommandAgent();
 
     protected:

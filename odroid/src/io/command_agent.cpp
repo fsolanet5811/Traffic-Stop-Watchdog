@@ -38,12 +38,7 @@ void CommandAgent::SendCommand(Device device, Command* command)
         throw runtime_error("Command cannot contain more than 7 argument bytes");
     }
 
-    uchar cByte = ((uchar)device << 7) | (command->args.size() << 4) | command->action;
-
-    vector<uchar> bytes = command->args;
-    bytes.insert(bytes.begin(), cByte);
-
-    _commandPort->WriteToDevice(device, bytes);
+    _commandPort->WriteToDevice(device, command->action, command->args);
     Log(string("Command sent to " + to_string(device)) + ". Waiting for acknowledge", DeviceSerial);
 
     // Wait for the acknowledgement.
@@ -54,13 +49,7 @@ void CommandAgent::SendCommand(Device device, Command* command)
 void CommandAgent::AcknowledgeReceived(Device device)
 {
     // An acknowledgement is just 4 ones as the lsb's.
-    uchar ack = ((uchar)device << 7) | 0x0f;
-    _commandPort->WriteToDevice(ack);
-}
-
-void CommandAgent::SendResponse(vector<uchar> formattedResponse)
-{
-    _commandPort->WriteToDevice(formattedResponse);
+    _commandPort->WriteToDevice(device, Acknowledge);
 }
 
 bool CommandAgent::TryReadResponse(Device device, vector<uchar>* readResponse)
@@ -75,13 +64,6 @@ bool CommandAgent::TryReadResponse(Device device, vector<uchar>* readResponse)
 
     // No response found.
     return false;
-}
-
-void CommandAgent::SendResponse(uchar formattedResponse)
-{
-    vector<uchar> response;
-    response.push_back(formattedResponse);
-    SendResponse(response);
 }
 
 vector<uchar> CommandAgent::ReadResponse(Device device)

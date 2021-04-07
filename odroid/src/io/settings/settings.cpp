@@ -25,6 +25,14 @@ Vector2 Settings::ReadVector2(Document& doc, string vectorName)
     return v;
 }
 
+ByteVector2 Settings::ReadByteVector2(Document& doc, string vectorName)
+{
+    ByteVector2 v;
+    v.x = doc[vectorName.c_str()]["X"].GetInt();
+    v.y = doc[vectorName.c_str()]["Y"].GetInt();
+    return v;
+}
+
 MotorConfig Settings::ReadMotorConfig(Document& doc, string motorConfigName)
 {
     MotorConfig mc;

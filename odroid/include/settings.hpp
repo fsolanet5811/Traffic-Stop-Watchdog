@@ -18,6 +18,7 @@ namespace tsw::io::settings
         static void LoadJsonFile(Document* doc, string jsonFile);
         static MotorConfig ReadMotorConfig(Document& doc, string motorConfigName);
         static Vector2 ReadVector2(Document& doc, string vectorName);
+        static ByteVector2 ReadByteVector2(Document& doc, string vectorName);
         static Bounds ReadBounds(Document& doc, string boundsName);
         static uint ReadLogFlags(Document& doc, string logFlagsName);
         static SerialConfig ReadSerialConfig(Document& doc, string serialConfigName);
@@ -60,6 +61,7 @@ namespace tsw::io::settings
         Scalar MinOfficerHSV;
         Scalar MaxOfficerHSV;
         double OfficerThreshold;
+        ByteVector2 MotorSpeeds;
         void Load(string settingsFile);
 
     private:

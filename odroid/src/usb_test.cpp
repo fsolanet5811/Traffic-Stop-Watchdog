@@ -4,7 +4,7 @@ using namespace tsw::io;
 
 int main(int argc, char* argv[])
 {
-    SerialPort port;
+    SerialPort port(B9600);
     port.Open(argv[1]);
 
     uchar* buffer = new uchar[1];

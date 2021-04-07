@@ -55,6 +55,7 @@ void TswSettings::Load(string settingsFile)
     MinOfficerHSV = ReadHSV(doc, "MinOfficerHSV");
     MaxOfficerHSV = ReadHSV(doc, "MaxOfficerHSV");
     OfficerThreshold = doc["OfficerThreshold"].GetDouble();
+    MotorSpeeds = ReadByteVector2(doc, "MotorSpeeds");
 
     // Get the log settings.
     LogFlags = ReadLogFlags(doc, "LogFlags");

@@ -113,7 +113,7 @@ void DeviceSerialPort::WriteToDevice(vector<uchar> formattedData)
     _port->Write(formattedData.data(), formattedData.size());
 }
 
-void DeviceSerialPort::WriteToDevice(Device device, vector<uchar> data)
+void DeviceSerialPort::WriteToDevice(Device device, CommandAction command, vector<uchar> data)
 {
     // Because we only have 3 bits for extra byte count, we cannot have more than 7 bytes.
     if(data.size() > 7)
@@ -122,16 +122,15 @@ void DeviceSerialPort::WriteToDevice(Device device, vector<uchar> data)
     }
 
     // Create the header byte and put it in the beginning.
-    uchar header = ((uchar)device << 7) | data.size() << 4;
+    uchar header = ((uchar)device << 7) | data.size() << 4 | command;
     data.insert(data.begin(), header);
     WriteToDevice(data);
 }
 
-void DeviceSerialPort::WriteToDevice(uchar formattedByte)
+void DeviceSerialPort::WriteToDevice(Device device, CommandAction action)
 {
-    vector<uchar> bytes(1);
-    bytes[0] = formattedByte;
-    WriteToDevice(bytes);
+    vector<uchar> bytes(0);
+    WriteToDevice(device, action, bytes);
 }
 
 bool DeviceSerialPort::TryReadFromDevice(Device device, DeviceMessage* readMessage)
