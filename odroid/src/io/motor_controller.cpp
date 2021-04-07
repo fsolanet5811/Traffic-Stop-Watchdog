@@ -118,7 +118,7 @@ bool MotorController::TryReadMessage(DeviceMessage* message)
 void MotorController::SetSpeeds(ByteVector2 speeds)
 {
     // To keep it consistent, we will send the horizontal speed first.
-    vector<uchar> data(2);
+    vector<uchar> data;
     data.push_back(speeds.x);
     data.push_back(speeds.y);
 
@@ -127,9 +127,9 @@ void MotorController::SetSpeeds(ByteVector2 speeds)
     _commandPort->WriteToDevice(Motors, tsw::io::SetSpeeds, data);
 
     // They will send an ack when they get it.
-    Log("Waiting for set speed acknowledge from motors", Acknowledge);
+    Log("Waiting for set speed acknowledge from motors", tsw::utilities::Acknowledge);
     _commandPort->ReadFromDevice(Motors);
-    Log("Set speed acknowledge received", Movements);
+    Log("Set speed acknowledge received", tsw::utilities::Acknowledge);
 
     Log("Motor speeds set", Movements);
 }

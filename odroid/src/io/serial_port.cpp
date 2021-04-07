@@ -17,7 +17,7 @@ SerialPort::SerialPort(speed_t baudRate)
 void SerialPort::Open(string devicePath)
 {
     // Attempt to connect to the device.
-    Log("Opening serial port on " + devicePath, RawSerial);
+    Log("Opening serial port on " + devicePath, RawSerialContinuous);
     int res = open(devicePath.c_str(), O_RDWR);
 
     // See if we made a successful connection.
@@ -25,7 +25,7 @@ void SerialPort::Open(string devicePath)
     {
         throw runtime_error("Could not connect to device " + devicePath);
     }
-    Log("Found port on " + to_string(res), RawSerial);
+    Log("Found port on " + to_string(res), RawSerialContinuous);
     _port = res;
 
     // Now configure the connection.
@@ -73,12 +73,12 @@ void SerialPort::Open(string devicePath)
     }
 
     // Ok now we are good.
-    Log("Port opened.", RawSerial);
+    Log("Port opened.", RawSerialContinuous);
 }
 
 int SerialPort::Read(unsigned char* buffer, int bytesToRead)
 {
-    Log("Trying to read " + to_string(bytesToRead) + " bytes.", RawSerial);
+    Log("Trying to read " + to_string(bytesToRead) + " bytes.", RawSerialContinuous);
     int bytesRead = read(_port, buffer, bytesToRead);
 
     // Make sure it worked.
@@ -87,14 +87,16 @@ int SerialPort::Read(unsigned char* buffer, int bytesToRead)
         throw runtime_error("Failed to read bytes.");
     }
 
-	Log("Read " + to_string(bytesRead) + " bytes. (" + ToHex(buffer, bytesRead) + ")", RawSerial);
+    // Only inform the raw serial if we actually read something.
+    uint logFlags = bytesRead > 0 ? RawSerial | RawSerialContinuous : RawSerialContinuous;
+	Log("Read " + to_string(bytesRead) + " bytes. (" + ToHex(buffer, bytesRead) + ")", logFlags);
 
     return bytesRead;
 }
 
 int SerialPort::Write(unsigned char* data, int bytesToWrite)
 {
-    Log("Trying to write " + to_string(bytesToWrite) + " bytes (" + ToHex(data, bytesToWrite) + ")", RawSerial);
+    Log("Trying to write " + to_string(bytesToWrite) + " bytes (" + ToHex(data, bytesToWrite) + ")", RawSerialContinuous | RawSerial);
     int bytesWritten = write(_port, data, bytesToWrite);
 
     if(bytesWritten == -1)
@@ -102,7 +104,7 @@ int SerialPort::Write(unsigned char* data, int bytesToWrite)
         throw runtime_error("Failed to write bytes.");
     }
 
-    Log("Wrote " + to_string(bytesWritten) + " bytes.", RawSerial);
+    Log("Wrote " + to_string(bytesWritten) + " bytes.", RawSerialContinuous | RawSerial);
     return bytesWritten;
 }
 
@@ -128,13 +130,15 @@ string SerialPort::ToHex(uchar* bytes, int numBytes)
     int i;
     for(i = 0; i < numBytes - 1; i++)
     {
-        ss << hex << bytes[i];
+        ss << "0x";
+        ss << setw(2) << setfill('0') << hex << static_cast<uint>(bytes[i]);
         ss << ' ';
     }
 
     if(numBytes > 0)
     {
-        ss << hex << bytes[i];
+        ss << "0x";
+        ss << setw(2) << setfill('0') << hex << static_cast<uint>(bytes[i]);
     }
     
     return ss.str();

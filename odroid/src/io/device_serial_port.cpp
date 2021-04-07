@@ -64,7 +64,7 @@ void DeviceSerialPort::Gather()
             }
             
             // Add this byte to the list.
-            Log("Read byte from " + to_string((int)currentDevice) + ": " + SerialPort::ToHex(b, 1), RawSerial | RawSerialReceives);
+            Log("Read byte from " + to_string((int)currentDevice) + ": " + SerialPort::ToHex(b, 1), DeviceSerial);
             currentMessage.push_back(b[0]);
             bytesForCurrent--;
             
@@ -109,7 +109,7 @@ DeviceMessage DeviceSerialPort::ReadFromDevice(Device device)
 
 void DeviceSerialPort::WriteToDevice(vector<uchar> formattedData)
 {
-    Log("Writing " + to_string(formattedData.size()) + " bytes to serial", RawSerial);
+    Log("Writing " + to_string(formattedData.size()) + " bytes to serial", RawSerialContinuous);
     _port->Write(formattedData.data(), formattedData.size());
 }
 

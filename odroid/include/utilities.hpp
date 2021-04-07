@@ -30,12 +30,12 @@ namespace tsw::utilities
         Officers = 0b10000,
         Movements = 0b100000,
         Recording = 0b1000000,
-        RawSerial = 0b10000000,
+        RawSerialContinuous = 0b10000000,
         DeviceSerial = 0b100000000,
         Acknowledge = 0b1000000000,
         Locking = 0b10000000000,
         Flir = 0b100000000000,
-        RawSerialReceives = 0b1000000000000,
+        RawSerial = 0b1000000000000,
         LED = 0b10000000000000,
         OpenCV = 0b100000000000000
     };

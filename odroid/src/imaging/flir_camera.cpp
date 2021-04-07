@@ -265,10 +265,12 @@ void FlirCamera::RunLiveFeed()
 void FlirCamera::SetFrameHeight(int frameHeight)
 {
     Log("Changing camera frame height to " + to_string(frameHeight), Debug | Frames);
-    _camera->Height.SetValue(frameHeight);
-
-
+    
     // The camera does not auto center the region of interest, so we have to do it manually.
+    // The library does not allow 2 * offset + width to exceed the max width.
+    // We can just set the offset to 0 first so we do not have to worry.
+    _camera->OffsetY = 0;
+    _camera->Height.SetValue(frameHeight);
     _camera->OffsetY = (_camera->HeightMax.GetValue() - frameHeight) / 2;
 
     delete _userFrameHeight;
@@ -279,9 +281,13 @@ void FlirCamera::SetFrameHeight(int frameHeight)
 void FlirCamera::SetFrameWidth(int frameWidth)
 {
     Log("Changing camera frame width to " + to_string(frameWidth), Debug | Frames);
-    _camera->Width.SetValue(frameWidth);
+    
     
     // The camera does not auto center the region of interest, so we have to do it manually.
+    // The library does not allow 2 * offset + width to exceed the max width.
+    // We can just set the offset to 0 first so we do not have to worry.
+    _camera->OffsetX = 0;
+    _camera->Width.SetValue(frameWidth);
     _camera->OffsetX = (_camera->WidthMax.GetValue() - frameWidth) / 2;
 
     delete _userFrameWidth;
