@@ -38,7 +38,7 @@ void MotorController::SendMoveCommand(CommandAction moveType, double horizontal,
     int verticalMotor = AngleToMotorValue(vertical, TiltConfig);
     
     // The vertical bytes go after the horizontal.
-    vector<uchar> bytes(6);
+    vector<unsigned char> bytes(6);
     for(int i = 0; i < 3; i++)
     {
         bytes[2 - i] = (horizontalMotor >> (i * 8)) & 0xff;
@@ -47,54 +47,27 @@ void MotorController::SendMoveCommand(CommandAction moveType, double horizontal,
 
     // Now we can send the command to the motor.
     // This is an asynchronous move since we don't really need to know when the motor has moved.
-    Log("MOVE " + moveName + "\tH:  " + to_string(horizontal) + "\tV:  " + to_string(vertical), Movements);
+    // Give them the steps as well.
+    Log("MOVE " + moveName + "\tH:  " + to_string(horizontal) + "  (" + to_string(horizontalMotor) + ")\tV:  " + to_string(vertical) + "  (" + to_string(verticalMotor) + ")", Movements);
     _commandPort->WriteToDevice(Motors, moveType, bytes);
 
     // Wait for the acknowledge (not the same as a synch response).
     // It is possible that the read response is not an ack but a success/failure from a previous move.
-    while(true)
-    {
-        Log("Reading move command acknowledge", tsw::utilities::Acknowledge);
-        DeviceMessage message = _commandPort->ReadFromDevice(Motors);
-
-        // Acknowledgements will be four 1's in the lsbs.
-        uchar lsbs = message.bytes[0] & 0x0f;
-        if(lsbs == 0x0f)
-        {
-            // This is the acknowledgement.
-            Log("Move command acknowledge received", tsw::utilities::Acknowledge);
-            return;
-        }
-
-        if(lsbs == 0x02)
-        {
-            // There was a fault in the motors' last movement.
-            Log("Motors returned FAULT!", tsw::utilities::Error);
-        }
-        else
-        {
-            // The byte was hopefully a success byte, just read another one.
-            Log("Move command success response read", Acknowledge);
-        }
-    }
-    
+    ReadAcknowledge();
 }
 
 void MotorController::Activate()
 {
-    Log("Activating motors", Motors);
+    Log("Activating motors", Movements);
     _commandPort->WriteToDevice(Motors, tsw::io::Activate);
-	
-	// Read the acknowledgement.
-    Log("Waiting for acknowledge from motors", Motors | Acknowledge);
-    _commandPort->ReadFromDevice(Motors);
-    Log("Acknowledge from motors received", Motors | Acknowledge);
+
+    ReadAcknowledge();
 
 	// The motors will send us a byte when it is calibrated.
 	// We gotta wait for this before starting anything else.
-    Log("Waiting for activation finish response", Motors);
-	_commandPort->ReadFromDevice(Motors);
-    Log("Motors Activated", Motors);
+    ReadSuccess();
+
+    Log("Motors activated", Movements);
 }
 
 void MotorController::Deactivate()
@@ -102,11 +75,8 @@ void MotorController::Deactivate()
     Log("Deactivating motors", Movements);
     _commandPort->WriteToDevice(Motors, tsw::io::Deactivate);
     
-    // Read the acknowledgement.
-    Log("Waiting for acknowledge from motors", Movements | tsw::utilities::Acknowledge);
-    _commandPort->ReadFromDevice(Motors);
-    Log("Acknowledge from motors received", Movements | tsw::utilities::Acknowledge);
-
+    ReadAcknowledge();
+    
     Log("Motors Deactivated", Motors);
 }
 
@@ -118,7 +88,7 @@ bool MotorController::TryReadMessage(DeviceMessage* message)
 void MotorController::SetSpeeds(ByteVector2 speeds)
 {
     // To keep it consistent, we will send the horizontal speed first.
-    vector<uchar> data;
+    vector<unsigned char> data;
     data.push_back(speeds.x);
     data.push_back(speeds.y);
 
@@ -127,11 +97,23 @@ void MotorController::SetSpeeds(ByteVector2 speeds)
     _commandPort->WriteToDevice(Motors, tsw::io::SetSpeeds, data);
 
     // They will send an ack when they get it.
-    Log("Waiting for set speed acknowledge from motors", tsw::utilities::Acknowledge);
-    _commandPort->ReadFromDevice(Motors);
-    Log("Set speed acknowledge received", tsw::utilities::Acknowledge);
+    ReadAcknowledge();
 
     Log("Motor speeds set", Movements);
+}
+
+void MotorController::ReadAcknowledge()
+{
+    Log("Waiting for acknowledge from motors", tsw::utilities::Acknowledge);
+    _commandPort->ReadFromDevice(Motors, 0x8f);
+    Log("Acknowledge from motors received", tsw::utilities::Acknowledge);
+}
+
+void MotorController::ReadSuccess()
+{
+    Log("Waiting for success response from motors", tsw::io::Acknowledge);
+    _commandPort->ReadFromDevice(Motors, 0x81);
+    Log("Success response from motors read", tsw::utilities::Acknowledge);
 }
 
 int MotorController::AngleToMotorValue(double angle, MotorConfig config)

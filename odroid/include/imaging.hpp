@@ -4,6 +4,8 @@
 #include "SpinGenApi/SpinnakerGenApi.h"
 #include "opencv2/opencv.hpp"
 #include "utilities.hpp"
+#include "io.hpp"
+#include "common.hpp"
 #include <string>
 #include <future>
 
@@ -12,22 +14,11 @@ using namespace Spinnaker;
 using namespace Spinnaker::GenApi;
 using namespace cv;
 using namespace tsw::utilities;
+using namespace tsw::io;
+using namespace tsw::common;
 
 namespace tsw::imaging
 {
-    struct Vector2
-    {
-        double x;
-        double y;
-    };
-
-    struct OfficerDirection
-    {
-        bool foundOfficer;
-        bool shouldMove;
-        Vector2 movement;
-    };
-
     struct LiveFeedCallbackArgs
     {
         ImagePtr image;
@@ -40,22 +31,6 @@ namespace tsw::imaging
         uint callbackKey;
     };
 
-    struct ImageProcessingConfig
-    {
-        bool displayFrames;
-        bool recordFrames;
-        bool showBoxes;
-    };
-
-    struct OfficerInferenceBox
-    {
-        short topLeftX;
-        short topLeftY;
-        short bottomRightX;
-        short bottomRightY;
-        float confidence;
-    };
-    
 
     class FlirCamera
     {
@@ -134,11 +109,13 @@ namespace tsw::imaging
         Vector2 SafeRegionProportion;
         float ConfidenceThreshold;
         OfficerDirection FindOfficer(ImagePtr image);
+        OfficerDirection FindOfficer(ImagePtr image, OfficerInferenceBox* officerBox);
+        OfficerInferenceBox* GetOfficerBox(ImagePtr image);
         vector<OfficerInferenceBox> GetOfficerLocations(ImagePtr image);
 
     protected:
         OfficerLocator(int16_t officerClassId);
-        virtual Vector2* GetDesiredOfficerLocation(ImagePtr image) = 0;    
+        virtual OfficerInferenceBox* GetDesiredOfficerBox(vector<OfficerInferenceBox> officerBoxes, ImagePtr image) = 0;    
 
     private:
         enum RegionLocation
@@ -160,7 +137,7 @@ namespace tsw::imaging
         ConfidenceOfficerLocator(int16_t OfficerClassId);
 
     protected:
-        Vector2* GetDesiredOfficerLocation(ImagePtr image);
+        OfficerInferenceBox* GetDesiredOfficerBox(vector<OfficerInferenceBox> officerBoxes, ImagePtr image);
     };
 
     class SmartOfficerLocator : public OfficerLocator
@@ -172,7 +149,7 @@ namespace tsw::imaging
         double OfficerThreshold;
     
     protected:
-        Vector2* GetDesiredOfficerLocation(ImagePtr image);
+        OfficerInferenceBox* GetDesiredOfficerBox(vector<OfficerInferenceBox> officerBoxes, ImagePtr image);
     };
 
     class TestOfficerLocator : public OfficerLocator
@@ -181,7 +158,7 @@ namespace tsw::imaging
         TestOfficerLocator(int16_t OfficerClassId);
 
     protected:
-        Vector2* GetDesiredOfficerLocation(ImagePtr image);
+        OfficerInferenceBox* GetDesiredOfficerBox(vector<OfficerInferenceBox> officerBoxes, ImagePtr image);
 
     private:
         int _status;
@@ -210,7 +187,8 @@ namespace tsw::imaging
     class ImageProcessor
     {
     public:
-        ImageProcessor(Recorder& recorder, DisplayWindow& window, FlirCamera& camera, OfficerLocator& officerLocator, ImageProcessingConfig config);
+        ImageProcessor(Recorder& recorder, DisplayWindow& window, FlirCamera& camera, OfficerLocator& officerLocator, CameraMotionController& motionController, ImageProcessingConfig config);
+        uint CameraFramesToSkip;
         void StartProcessing();
         void StopProcessing();
         bool IsProcessing();
@@ -220,6 +198,7 @@ namespace tsw::imaging
         DisplayWindow* _window;
         FlirCamera* _camera;
         OfficerLocator* _officerLocator;
+        CameraMotionController* _motionController;
         uint _livefeedCallbackKey;
         bool _isProcessing;
         ImageProcessingConfig _config;

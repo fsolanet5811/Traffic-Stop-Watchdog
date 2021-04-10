@@ -45,7 +45,6 @@ void TswSettings::Load(string settingsFile)
     CameraFrameWidth = doc["CameraFrameWidth"].GetInt();
     PanConfig = ReadMotorConfig(doc, "PanConfig");
     TiltConfig = ReadMotorConfig(doc, "TiltConfig");
-    MoveCamera = doc["MoveCamera"].GetBool();
     FrameDisplayRefreshRate = doc["FrameDisplayRefreshRate"].GetInt();
     ImagingConfig = ReadImageProcessingConfig(doc, "ImagingConfig");
     UseStatusLED = doc["UseStatusLED"].GetBool();

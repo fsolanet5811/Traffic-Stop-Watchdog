@@ -1,6 +1,9 @@
 #include "io.hpp"
+#include "utilities.hpp"
+#include <string>
 
 using namespace tsw::io;
+using namespace tsw::utilities;
 
 CommandAgent::CommandAgent(DeviceSerialPort& commandPort)
 {
@@ -52,7 +55,7 @@ void CommandAgent::AcknowledgeReceived(Device device)
     _commandPort->WriteToDevice(device, Acknowledge);
 }
 
-bool CommandAgent::TryReadResponse(Device device, vector<uchar>* readResponse)
+bool CommandAgent::TryReadResponse(Device device, vector<unsigned char>* readResponse)
 {
     DeviceMessage message;
     if(_commandPort->TryReadFromDevice(device, &message))
@@ -66,10 +69,10 @@ bool CommandAgent::TryReadResponse(Device device, vector<uchar>* readResponse)
     return false;
 }
 
-vector<uchar> CommandAgent::ReadResponse(Device device)
+vector<unsigned char> CommandAgent::ReadResponse(Device device)
 {
     Log("Reading response from " + device, DeviceSerial);
-    vector<uchar> response;
+    vector<unsigned char> response;
     while(true)
     {
         if(TryReadResponse(device, &response))

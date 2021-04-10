@@ -4,6 +4,7 @@
 #include <errno.h>
 #include <termios.h>
 #include <unistd.h>
+#include <iomanip>
 
 using namespace tsw::io;
 using namespace std;
@@ -110,7 +111,7 @@ int SerialPort::Write(unsigned char* data, int bytesToWrite)
 
 void SerialPort::Clear()
 {
-    uchar temp[4096];
+    unsigned char temp[4096];
     while(Read(temp, 4096)) { }
 }
 
@@ -124,7 +125,7 @@ SerialPort::~SerialPort()
     Close();
 }
 
-string SerialPort::ToHex(uchar* bytes, int numBytes)
+string SerialPort::ToHex(unsigned char* bytes, int numBytes)
 {
     stringstream ss;
     int i;

@@ -5,12 +5,9 @@
 using namespace tsw::io;
 using namespace tsw::imaging;
 
-CameraMotionController::CameraMotionController(FlirCamera& camera, OfficerLocator& officerLocator, MotorController& motorController)
+CameraMotionController::CameraMotionController(MotorController& motorController)
 {
-    _camera = &camera;
-    _officerLocator = &officerLocator;
     _motorController = &motorController;
-    CameraFramesToSkip = 0;
     HomeAngles.x = 0;
     HomeAngles.y = 0;
     AngleXBounds.min = 0;
@@ -24,9 +21,9 @@ CameraMotionController::CameraMotionController(FlirCamera& camera, OfficerLocato
     HorizontalFov = 44.8;
     VerticalFov = 34.6;
 
-    // By deafult, we did not find an officer.
+    // By default, we did not find an officer.
     ResetSearchState();
-    _isGuidingCameraMotion = false;
+    _isGuidanceInitialized = false;
 }
 
 void CameraMotionController::ResetSearchState()
@@ -35,9 +32,14 @@ void CameraMotionController::ResetSearchState()
     _searchState = NotSearching;
 }
 
-void CameraMotionController::StartCameraMotionGuidance()
+bool CameraMotionController::IsGuidanceInitialized()
 {
-    if(!IsGuidingCameraMotion())
+    return _isGuidanceInitialized;
+}
+
+void CameraMotionController::InitializeGuidance()
+{
+    if(!IsGuidanceInitialized())
     {
         // Activate the motors.
         _motorController->Activate();
@@ -45,54 +47,36 @@ void CameraMotionController::StartCameraMotionGuidance()
         // Set the speeds.
         _motorController->SetSpeeds(MotorSpeeds);
 
-        _isGuidingCameraMotion = true;
-        _cameraLivefeedCallbackKey = _camera->RegisterLiveFeedCallback(bind(&CameraMotionController::OnLivefeedImageReceived, this, placeholders::_1));
+        _isGuidanceInitialized = true;
     }
 }
 
-void CameraMotionController::StopCameraMotionGuidance()
+void CameraMotionController::UninitializeGuidance()
 {
-    if(IsGuidingCameraMotion())
+    if(IsGuidanceInitialized())
     {
-        _camera->UnregisterLiveFeedCallback(_cameraLivefeedCallbackKey);
-
         // Deactivate the motors.
         _motorController->Deactivate();
 
-        _isGuidingCameraMotion = false;
+        _isGuidanceInitialized = false;
         ResetSearchState();
     }
 }
 
-bool CameraMotionController::IsGuidingCameraMotion()
+void CameraMotionController::GuideCameraTo(OfficerDirection location)
 {
-    return _isGuidingCameraMotion;
-}
-
-void CameraMotionController::OnLivefeedImageReceived(LiveFeedCallbackArgs args)
-{
-    // We don't always process every frame.
-    // This will allow for a less jittery motion.
-    if(args.imageIndex % (CameraFramesToSkip + 1))
-    {
-        return;
-    }
-
-    // Get the movement direction for this frame.
-    OfficerDirection dir = _officerLocator->FindOfficer(args.image);
-
-    if(dir.foundOfficer)
+    if(location.foundOfficer)
     {
         // Reset the officer search state.
         _searchState = NotSearching;
 
         // We don't always have to move if we found the officer.
-        if(dir.shouldMove)
+        if(location.shouldMove)
         {
             // Based on the direction vector to move, we need to get the angles to rotate the motors.
             // Positive angles point to the left/down, so we gotta negate these guys.
-            double horizontalRotate = dir.movement.x * HorizontalFov / 2;
-            double verticalRotate = -1 * dir.movement.y * VerticalFov / 2;
+            double horizontalRotate = location.movement.x * HorizontalFov / 2;
+            double verticalRotate = -1 * location.movement.y * VerticalFov / 2;
 
             _motorController->SendAsyncRelativeMoveCommand(horizontalRotate, verticalRotate);
         }

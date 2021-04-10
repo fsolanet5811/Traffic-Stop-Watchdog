@@ -11,18 +11,15 @@ SmartOfficerLocator::SmartOfficerLocator(int16_t officerClassId) : OfficerLocato
     OfficerThreshold = 0.15;
 }
 
-Vector2* SmartOfficerLocator::GetDesiredOfficerLocation(ImagePtr image)
+OfficerInferenceBox* SmartOfficerLocator::GetDesiredOfficerBox(vector<OfficerInferenceBox> officerBoxes, ImagePtr image)
 {
-    vector<OfficerInferenceBox> boxes = GetOfficerLocations(image);
-    Log("Found " + to_string(boxes.size()) + " bounding boxes", Officers);
-
     unsigned char* data = (unsigned char*)image->GetData();
     Mat m(image->GetHeight(), image->GetWidth(), CV_8UC3, data);
 
     OfficerInferenceBox* bestBox = nullptr;
-    for(int i = 0; i < boxes.size(); i++)
+    for(int i = 0; i < officerBoxes.size(); i++)
     {
-        OfficerInferenceBox curBox = boxes[i];
+        OfficerInferenceBox curBox = officerBoxes[i];
         
         // Determine how big the roi is.
         Log("ROI: Top-Left = (" + to_string(curBox.topLeftX) + ", " + to_string(curBox.topLeftY) + ") Bottom-Right = (" + to_string(curBox.bottomRightX) + ", " + to_string(curBox.bottomRightY) + ")", OpenCV);
@@ -64,23 +61,19 @@ Vector2* SmartOfficerLocator::GetDesiredOfficerLocation(ImagePtr image)
         if(thresholdProp >= OfficerThreshold)
         {
             // This box has enough of the color. Now let's compare it.
-            if(!bestBox || boxes[i].confidence > bestBox->confidence)
+            if(!bestBox || officerBoxes[i].confidence > bestBox->confidence)
             {
-                bestBox = &boxes[i];
+                delete bestBox;
+                bestBox = new OfficerInferenceBox(officerBoxes[i]);
             }
         }
     }
 
     // If our best box is still null, we didn't find an officer.
-    if(!bestBox)
+    if(bestBox)
     {
-        return NULL;
+        Log("Officer Confidence: " + to_string(bestBox->confidence), Officers);
     }
 
-    Log("Highest Confidence: " + to_string(bestBox->confidence), Officers);
-
-    Vector2* p = new Vector2();
-    p->x = (bestBox->topLeftX + bestBox->bottomRightX) / 2.0;
-    p->y = (bestBox->topLeftY + bestBox->bottomRightY) / 2.0;
-    return p;
+    return bestBox;
 }

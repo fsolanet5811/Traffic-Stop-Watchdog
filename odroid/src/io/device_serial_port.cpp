@@ -1,10 +1,13 @@
 #include "io.hpp"
+#include "utilities.hpp"
 #include <future>
 #include <thread>
 #include <chrono>
 
+
 using namespace tsw::io;
 using namespace std;
+using namespace tsw::utilities;
 
 DeviceSerialPort::DeviceSerialPort(SerialPort& port)
 {
@@ -43,7 +46,7 @@ void DeviceSerialPort::Gather()
     // We need to keep track of which device we are reading from.
     Device currentDevice;
     int bytesForCurrent = 0;
-    vector<uchar> currentMessage;
+    vector<unsigned char> currentMessage;
 
     while(IsGathering())
     {
@@ -80,7 +83,7 @@ void DeviceSerialPort::Gather()
                 _buffer.push_back(message);
                 _bufferLock.Unlock("Add Message");
 
-                currentMessage = vector<uchar>();
+                currentMessage = vector<unsigned char>();
             }
             
             // We are not sleeping here because if we have nothing to read, then the read will act as a small sleep.
@@ -107,13 +110,26 @@ DeviceMessage DeviceSerialPort::ReadFromDevice(Device device)
     }
 }
 
-void DeviceSerialPort::WriteToDevice(vector<uchar> formattedData)
+DeviceMessage DeviceSerialPort::ReadFromDevice(Device device, unsigned char header)
+{
+    // Keep reading messages until one with the given header is returned.
+    while(true)
+    {
+        DeviceMessage message = ReadFromDevice(device);
+        if(message.bytes[0] == header)
+        {
+            return message;
+        }
+    }
+}
+
+void DeviceSerialPort::WriteToDevice(vector<unsigned char> formattedData)
 {
     Log("Writing " + to_string(formattedData.size()) + " bytes to serial", RawSerialContinuous);
     _port->Write(formattedData.data(), formattedData.size());
 }
 
-void DeviceSerialPort::WriteToDevice(Device device, CommandAction command, vector<uchar> data)
+void DeviceSerialPort::WriteToDevice(Device device, CommandAction command, vector<unsigned char> data)
 {
     // Because we only have 3 bits for extra byte count, we cannot have more than 7 bytes.
     if(data.size() > 7)
@@ -122,14 +138,14 @@ void DeviceSerialPort::WriteToDevice(Device device, CommandAction command, vecto
     }
 
     // Create the header byte and put it in the beginning.
-    uchar header = ((uchar)device << 7) | data.size() << 4 | command;
+    unsigned char header = ((unsigned char)device << 7) | data.size() << 4 | command;
     data.insert(data.begin(), header);
     WriteToDevice(data);
 }
 
 void DeviceSerialPort::WriteToDevice(Device device, CommandAction action)
 {
-    vector<uchar> bytes(0);
+    vector<unsigned char> bytes(0);
     WriteToDevice(device, action, bytes);
 }
 

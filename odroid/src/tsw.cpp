@@ -78,14 +78,9 @@ void PrintFile(string fileName)
 void RunOfficerTracking(CameraMotionController& motionController, FlirCamera* camera, ImageProcessor& imageProcessor, TswSettings& settings)
 {
     Log("Starting officer tracking", Information | DeviceSerial | Recording | Officers);
-    
-    if(settings.MoveCamera)
-    {
-        motionController.StartCameraMotionGuidance();
-    }
-    
+
     // We only need the live feed if we actually are going to move and/or record.
-    if(settings.MoveCamera || settings.ImagingConfig.recordFrames || settings.ImagingConfig.displayFrames)
+    if(settings.ImagingConfig.moveCamera || settings.ImagingConfig.recordFrames || settings.ImagingConfig.displayFrames)
     {
         // Start the processing first so that everything is setup for when we get the first frame.
         imageProcessor.StartProcessing();
@@ -98,14 +93,8 @@ void RunOfficerTracking(CameraMotionController& motionController, FlirCamera* ca
 void FinishOfficerTracking(CameraMotionController& motionController, FlirCamera* camera, ImageProcessor& imageProcessor, TswSettings& settings, StatusLED& led)
 {
     Log("Stopping officer tracking", Information | DeviceSerial | Recording | Officers);
-           
-    if(settings.MoveCamera)
-    {
-        led.FlashesPerPause = 5;
-        motionController.StopCameraMotionGuidance();
-    }
-    
-    if(settings.MoveCamera || settings.ImagingConfig.recordFrames || settings.ImagingConfig.displayFrames)
+
+    if(settings.ImagingConfig.moveCamera || settings.ImagingConfig.recordFrames || settings.ImagingConfig.displayFrames)
     {
         // Start the processing first so that everything is setup for when we get the first frame.
         led.FlashesPerPause = 6;
@@ -180,16 +169,15 @@ int main(int argc, char* argv[])
     officerLocator.MinHSV = settings.MinOfficerHSV;
     officerLocator.OfficerThreshold = settings.OfficerThreshold;
 
+    // These two guys will handle moving the system.
     MotorController motorController(*portThatCanTalkToMotors, settings.PanConfig, settings.TiltConfig);
-
-    // This will handle displaying and recording when we get images.
-    ImageProcessor imageProcessor(recorder, window, *camera, officerLocator, settings.ImagingConfig);
-
-    CameraMotionController motionController(*camera, officerLocator, motorController);
-    motionController.CameraFramesToSkip = settings.CameraFramesToSkipMoving;
+    CameraMotionController motionController(motorController);
     motionController.HomeAngles = settings.HomeAngles;
     motionController.AngleXBounds = settings.AngleXBounds;
     motionController.MotorSpeeds = settings.MotorSpeeds;
+
+    // This will handle displaying and recording when we get images.
+    ImageProcessor imageProcessor(recorder, window, *camera, officerLocator, motionController, settings.ImagingConfig);
 
     // This will mark that we are just chilling.
     led.FlashesPerPause = 4;
@@ -244,16 +232,11 @@ int main(int argc, char* argv[])
         camera->StopLiveFeed();
     }
     
-    if(recorder.IsRecording())
+    if(imageProcessor.IsProcessing())
     {
-        recorder.StopRecording();
+        imageProcessor.StopProcessing();
     }
-      
-    if(motionController.IsGuidingCameraMotion())
-    {
-        motionController.StopCameraMotionGuidance();
-    }
-
+    
     delete agent;
     delete camera;
 

@@ -5,7 +5,7 @@ using namespace Spinnaker;
 
 TestOfficerLocator::TestOfficerLocator(int16_t officerClassId) : OfficerLocator(officerClassId) { }
 
-Vector2* TestOfficerLocator::GetDesiredOfficerLocation(ImagePtr image)
+OfficerInferenceBox* TestOfficerLocator::GetDesiredOfficerBox(vector<OfficerInferenceBox> officerBoxes, ImagePtr image)
 {
     Vector2* location = new Vector2();
     int mode = _status / 20;
@@ -44,5 +44,6 @@ Vector2* TestOfficerLocator::GetDesiredOfficerLocation(ImagePtr image)
         _status++;
     }
 
-    return location;
+    delete location;
+    return nullptr;
 }

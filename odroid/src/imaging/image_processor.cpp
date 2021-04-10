@@ -5,12 +5,13 @@
 using namespace tsw::imaging;
 using namespace tsw::io::settings;
 
-ImageProcessor::ImageProcessor(Recorder& recorder, DisplayWindow& window, FlirCamera& camera, OfficerLocator& officerLocator, ImageProcessingConfig config)
+ImageProcessor::ImageProcessor(Recorder& recorder, DisplayWindow& window, FlirCamera& camera, OfficerLocator& officerLocator, CameraMotionController& motionController, ImageProcessingConfig config)
 {
     _recorder = &recorder;
     _window = &window;
     _camera = &camera;
     _officerLocator = &officerLocator;
+    _motionController = &motionController;
     _config = config;
     _isProcessing = false;
 }
@@ -19,7 +20,7 @@ void ImageProcessor::StartProcessing()
 {
     if(!IsProcessing())
     {
-        if(_config.recordFrames || _config.displayFrames)
+        if(_config.recordFrames || _config.displayFrames || _config.moveCamera)
         {
             _livefeedCallbackKey = _camera->RegisterLiveFeedCallback(bind(&ImageProcessor::OnLiveFeedImageReceived, this, placeholders::_1));
 
@@ -32,6 +33,11 @@ void ImageProcessor::StartProcessing()
             {
                 _window->Show();
             }
+
+            if(_config.moveCamera)
+            {
+                _motionController->InitializeGuidance();
+            }
         }
         
         _isProcessing = true;
@@ -43,7 +49,7 @@ void ImageProcessor::StopProcessing()
 {
     if(IsProcessing())
     {
-        if(_config.recordFrames || _config.displayFrames)
+        if(_config.recordFrames || _config.displayFrames || _config.moveCamera)
         {
             _camera->UnregisterLiveFeedCallback(_livefeedCallbackKey);
 
@@ -56,6 +62,11 @@ void ImageProcessor::StopProcessing()
             {
                 _window->Close();
             }
+
+            if(_config.moveCamera)
+            {
+                _motionController->UninitializeGuidance();
+            }
         }
         _camera->UnregisterLiveFeedCallback(_livefeedCallbackKey);
         _isProcessing = false;
@@ -64,18 +75,45 @@ void ImageProcessor::StopProcessing()
 
 void ImageProcessor::OnLiveFeedImageReceived(LiveFeedCallbackArgs args)
 {
-    Mat cvImage = MatFromImage(args.image);
+    // Find the desired bounding box on the oficer.
+    OfficerInferenceBox* bestBox = _officerLocator->GetOfficerBox(args.image);
 
-    if(_config.recordFrames)
+    // Do the motion first, since that is the only time sensitive thing really.
+    if(_config.moveCamera && args.imageIndex % CameraFramesToSkip == 0)
     {
-        Log("Adding frame # " + to_string(args.imageIndex) + " to recording buffer", Recording);
-        _recorder->AddFrame(cvImage.clone());
-        Log("Frame added to recording buffer", Recording);
+        // Based on the best box, see where we need to go.
+        OfficerDirection dir = _officerLocator->FindOfficer(args.image, bestBox);
+
+        _motionController->GuideCameraTo(dir);
     }
 
-    if(_config.displayFrames)
+    if(_config.recordFrames || _config.displayFrames)
     {
-        _window->Update(cvImage.clone());
+        // Make an opencv image out of the FLIR image.
+        Mat cvImage = MatFromImage(args.image);
+
+        // If there is a box and we want to record and/or display the image, we gotta draw the box.
+        if(bestBox)
+        {
+            // Create the rectange in cv language.
+            Point topLeft(bestBox->topLeftX, bestBox->topLeftY);
+            Point bottomRight(bestBox->bottomRightX, bestBox->bottomRightY);
+            
+            // This is what puts it on the mat.
+            rectangle(cvImage, topLeft, bottomRight, Scalar(255, 0, 0));
+        }
+
+        if(_config.recordFrames)
+        {
+            Log("Adding frame # " + to_string(args.imageIndex) + " to recording buffer", Recording);
+            _recorder->AddFrame(cvImage.clone());
+            Log("Frame added to recording buffer", Recording);
+        }
+
+        if(_config.displayFrames)
+        {
+            _window->Update(cvImage);
+        }
     }
 }
 

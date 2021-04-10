@@ -16,24 +16,47 @@ OfficerLocator::OfficerLocator(int16_t officerClassId)
 
 OfficerDirection OfficerLocator::FindOfficer(ImagePtr image)
 {
-    OfficerDirection res;
-
     // Determine where on the image the officer is.
-    Vector2* officerLoc = GetDesiredOfficerLocation(image);
+    OfficerInferenceBox* officerBox = GetOfficerBox(image);
 
-    if(!officerLoc)
+    if(!officerBox)
     {
         // No officers were found on the image.
         Log("No officers found", Officers);
+        
+        OfficerDirection res;
         res.foundOfficer = false;
         return res;
     }
 
-    res.foundOfficer = true;
+    OfficerDirection dir = FindOfficer(image, officerBox);
+
+    // Remove the unmanaged box.
+    delete officerBox;
+
+    return dir;
+}
+
+OfficerDirection OfficerLocator::FindOfficer(ImagePtr image, OfficerInferenceBox* officerBox)
+{
+    // This will hold the result.
+    OfficerDirection res;
+
+    // They may have given us a null box.
+    if(!officerBox)
+    {
+        res.foundOfficer = false;
+        return res;
+    }
+
+    // Get a vecot that points from the center of the frame to the center of the box.
+    Vector2 officerLoc;
+    officerLoc.x = (officerBox->topLeftX + officerBox->bottomRightX) / 2.0;
+    officerLoc.y = (officerBox->topLeftY + officerBox->bottomRightY) / 2.0;
 
     // We have a location, now determine if we actually have to get there.
     // This is taking into account the region we found the officer in and the last region the officer was in.
-    RegionLocation region = GetRegionLocation(*officerLoc, image);
+    RegionLocation region = GetRegionLocation(officerLoc, image);
 
     // The two cases that warrant no moving are:
     // 1. We are in the target region
@@ -54,16 +77,22 @@ OfficerDirection OfficerLocator::FindOfficer(ImagePtr image)
     
     // First transform the location of the officer into [-1, 1] space (from left to right).
     // Keep in mind that we have to reverse the y axis.
-    officerLoc->x = officerLoc->x / (image->GetWidth() / 2) - 1;
-    officerLoc->y = 1 - officerLoc->y / (image->GetHeight() / 2);
+    officerLoc.x = officerLoc.x / (image->GetWidth() / 2) - 1;
+    officerLoc.y = 1 - officerLoc.y / (image->GetHeight() / 2);
 
     // That actually is the direction we want to move the officer.
     // Just transfor the point data over and we can delete the unmanaged point.
-    res.movement.x = officerLoc->x;
-    res.movement.y = officerLoc->y;
-    delete officerLoc;
+    res.movement.x = officerLoc.x;
+    res.movement.y = officerLoc.y;
 
     return res;
+}
+
+OfficerInferenceBox* OfficerLocator::GetOfficerBox(ImagePtr image)
+{
+    vector<OfficerInferenceBox> boxes = GetOfficerLocations(image);
+    Log("Found " + to_string(boxes.size()) + " bounding boxes", Officers);
+    return GetDesiredOfficerBox(boxes, image);
 }
 
 vector<OfficerInferenceBox> OfficerLocator::GetOfficerLocations(ImagePtr image)

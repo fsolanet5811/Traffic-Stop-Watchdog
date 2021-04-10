@@ -1,9 +1,11 @@
 #pragma once
 
 #include "Spinnaker.h"
-#include "imaging.hpp"
 #include "rapidjson.h"
+#include "common.hpp"
+#include <string>
 #include "document.h"
+#include "utilities.hpp"
 #include <termios.h>
 #include <future>
 
@@ -13,9 +15,10 @@
 #define FLASH_OFF_TIME 200000
 
 using namespace Spinnaker;
-using namespace tsw::imaging;
 using namespace std;
 using namespace rapidjson;
+using namespace tsw::common;
+using namespace tsw::utilities;
 
 namespace tsw::io
 {
@@ -29,7 +32,7 @@ namespace tsw::io
         void Clear();
         void Close();
         ~SerialPort();
-        static string ToHex(uchar* bytes, int numBytes);
+        static string ToHex(unsigned char* bytes, int numBytes);
         
     private:
 	    speed_t _baudRate;
@@ -45,13 +48,7 @@ namespace tsw::io
     struct DeviceMessage
     {
         Device device;
-        vector<uchar> bytes;
-    };
-
-    struct ByteVector2
-    {
-        uchar x;
-        uchar y;
+        vector<unsigned char> bytes;
     };
 
     enum CommandAction
@@ -79,7 +76,8 @@ namespace tsw::io
         void StopGathering();
         bool IsGathering();
         DeviceMessage ReadFromDevice(Device device);
-        void WriteToDevice(Device device, CommandAction command, vector<uchar> data);
+        DeviceMessage ReadFromDevice(Device device, unsigned char header);
+        void WriteToDevice(Device device, CommandAction command, vector<unsigned char> data);
         void WriteToDevice(Device device, CommandAction command);
         bool TryReadFromDevice(Device device, DeviceMessage* readMessage);
         ~DeviceSerialPort();
@@ -91,25 +89,7 @@ namespace tsw::io
         vector<DeviceMessage> _buffer;
         SmartLock _bufferLock;
         void Gather();
-        void WriteToDevice(vector<uchar> formattedData);
-    };
-
-    struct Bounds
-    {
-        int min;
-        int max;
-    };
-
-    struct MotorConfig
-    {
-        Bounds angleBounds;
-        Bounds stepBounds;
-    };
-
-    struct SerialConfig
-    {
-        string path;
-        speed_t baudRate;
+        void WriteToDevice(vector<unsigned char> formattedData);
     };
 
     class MotorController
@@ -130,22 +110,24 @@ namespace tsw::io
     private:
         DeviceSerialPort* _commandPort;
         void SendMoveCommand(CommandAction moveType, double horizontal, double vertical, string moveName);
+        void ReadAcknowledge();
+        void ReadSuccess();
         static int AngleToMotorValue(double angle, MotorConfig config);
     };
 
     class CameraMotionController
     {
     public:
-        CameraMotionController(FlirCamera& camera, OfficerLocator& officerLocator, MotorController& motorController);
+        CameraMotionController(MotorController& motorController);
         double VerticalFov;
         double HorizontalFov;
         Vector2 HomeAngles;
         Bounds AngleXBounds;
-        uint CameraFramesToSkip;
         ByteVector2 MotorSpeeds;
-        void StartCameraMotionGuidance();
-        void StopCameraMotionGuidance();
-        bool IsGuidingCameraMotion();
+        void InitializeGuidance();
+        void UninitializeGuidance();
+        bool IsGuidanceInitialized();
+        void GuideCameraTo(OfficerDirection location);
         void OfficerSearch();
         void GoToHome();
         static int GetMaxValue();
@@ -157,18 +139,15 @@ namespace tsw::io
             CheckingLastSeen = 1,
             Circling = 2
         };
-        FlirCamera* _camera;
-        OfficerLocator* _officerLocator;
         MotorController* _motorController;
-        bool _isGuidingCameraMotion;
+        bool _isGuidanceInitialized;
         uint _cameraLivefeedCallbackKey;
         OfficerSearchState _searchState;
         OfficerDirection _lastSeen;
         bool _movingTowardsMin;
         void ResetSearchState();
-        void SendMoveCommand(uchar specifierByte, double horizontal, double vertical, string moveName);
+        void SendMoveCommand(unsigned char specifierByte, double horizontal, double vertical, string moveName);
         void CheckLastSeen();
-        void OnLivefeedImageReceived(LiveFeedCallbackArgs args);
         void MoveToMin();
         void MoveToMax();
         void Circle();
@@ -185,11 +164,11 @@ namespace tsw::io
     public:
         CommandAgent(DeviceSerialPort& commandPort);
         Command* ReadCommand(Device device);
-        bool TryReadResponse(Device device, vector<uchar>* readResponse);
-        void SendResponse(vector<uchar> formattedResponse);
+        bool TryReadResponse(Device device, vector<unsigned char>* readResponse);
+        void SendResponse(vector<unsigned char> formattedResponse);
         void SendCommand(Device device, Command* command);
         void AcknowledgeReceived(Device device);
-        vector<uchar> ReadResponse(Device device);
+        vector<unsigned char> ReadResponse(Device device);
         ~CommandAgent();
 
     protected:
@@ -215,6 +194,6 @@ namespace tsw::io
         bool _isEnabled;
         future<void> _flashFuture;
         void RunFlash();
-        void SetBrightness(uchar brightness);
+        void SetBrightness(unsigned char brightness);
     };
 }

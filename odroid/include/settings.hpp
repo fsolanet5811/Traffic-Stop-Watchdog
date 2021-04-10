@@ -3,9 +3,13 @@
 #include "rapidjson.h"
 #include "document.h"
 #include "io.hpp"
+#include "common.hpp"
+#include "opencv2/opencv.hpp"
 
 using namespace std;
 using namespace tsw::io;
+using namespace tsw::common;
+using namespace cv;
 
 namespace tsw::io::settings
 {
@@ -51,7 +55,6 @@ namespace tsw::io::settings
         int CameraFrameHeight;
         MotorConfig PanConfig;
         MotorConfig TiltConfig;
-        bool MoveCamera;
         ImageProcessingConfig ImagingConfig;
         int FrameDisplayRefreshRate;
         bool UseStatusLED;

@@ -116,7 +116,7 @@ void StatusLED::RunFlash()
     }
 }
 
-void StatusLED::SetBrightness(uchar brightness)
+void StatusLED::SetBrightness(unsigned char brightness)
 {
     // Open a stream to the led brightness file.
     // Opening with the trunc option clears it every time we open it.
