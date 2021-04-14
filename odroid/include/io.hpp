@@ -130,6 +130,7 @@ namespace tsw::io
         void GuideCameraTo(OfficerDirection location);
         void OfficerSearch();
         void GoToHome();
+        void CalibrateFOV(int frameWidth, int frameHeight);
         static int GetMaxValue();
 
     private:

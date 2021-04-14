@@ -176,6 +176,9 @@ int main(int argc, char* argv[])
     motionController.AngleXBounds = settings.AngleXBounds;
     motionController.MotorSpeeds = settings.MotorSpeeds;
 
+    // The FOV changes based on the resolution.
+    motionController.CalibrateFOV(settings.CameraFrameWidth, settings.CameraFrameHeight);
+
     // This will handle displaying and recording when we get images.
     ImageProcessor imageProcessor(recorder, window, *camera, officerLocator, motionController, settings.ImagingConfig);
 

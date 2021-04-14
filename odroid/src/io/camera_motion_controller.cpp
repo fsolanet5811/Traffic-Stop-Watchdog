@@ -120,6 +120,13 @@ void CameraMotionController::OfficerSearch()
     }
 }
 
+void CameraMotionController::CalibrateFOV(int frameWidth, int frameHeight)
+{
+    // We know the FOV for 1440 x 1080, and the relationship is linear!
+    HorizontalFov = 44.8 * frameWidth / 1440.0;
+    VerticalFov = 34.6 * frameHeight / 1080.0;
+}
+
 void CameraMotionController::CheckLastSeen()
 {
     _searchState = CheckingLastSeen;
