@@ -57,6 +57,7 @@ OfficerDirection OfficerLocator::FindOfficer(ImagePtr image, OfficerInferenceBox
     // We have a location, now determine if we actually have to get there.
     // This is taking into account the region we found the officer in and the last region the officer was in.
     RegionLocation region = GetRegionLocation(officerLoc, image);
+    Log("Found officer in region: " + to_string(region), Officers);
 
     // The two cases that warrant no moving are:
     // 1. We are in the target region

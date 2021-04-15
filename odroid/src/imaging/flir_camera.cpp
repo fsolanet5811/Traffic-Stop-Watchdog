@@ -280,8 +280,7 @@ void FlirCamera::SetFrameHeight(int frameHeight)
 
 void FlirCamera::SetFrameWidth(int frameWidth)
 {
-    Log("Changing camera frame width to " + to_string(frameWidth), Debug | Frames);
-    
+    Log("Changing camera frame width to " + to_string(frameWidth), Debug | Frames);  
     
     // The camera does not auto center the region of interest, so we have to do it manually.
     // The library does not allow 2 * offset + width to exceed the max width.

@@ -145,7 +145,7 @@ void CameraMotionController::CheckLastSeen()
         double verticalAngle = _lastSeen.movement.y * VerticalFov;
 
         // Move so that the center of the frame is on the officer's predicted location.
-        _motorController->SendSyncAbsoluteMoveCommand(horizontalAngle, verticalAngle);
+        _motorController->SendSyncRelativeMoveCommand(horizontalAngle, verticalAngle);
 
         // Reset where we last saw the officer.
         _lastSeen.foundOfficer = false;

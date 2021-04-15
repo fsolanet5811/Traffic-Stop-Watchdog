@@ -97,9 +97,9 @@ void FinishOfficerTracking(CameraMotionController& motionController, FlirCamera*
     if(settings.ImagingConfig.moveCamera || settings.ImagingConfig.recordFrames || settings.ImagingConfig.displayFrames)
     {
         // Start the processing first so that everything is setup for when we get the first frame.
-        led.FlashesPerPause = 6;
+        led.FlashesPerPause = 4;
         imageProcessor.StopProcessing();
-        led.FlashesPerPause = 7;
+        led.FlashesPerPause = 5;
         camera->StopLiveFeed();
     }
 
@@ -130,7 +130,6 @@ int main(int argc, char* argv[])
     ConfigureLog(settings.LogFlags);
 
     // Connect to the device port.
-    led.FlashesPerPause = 2;
     DeviceSerialPort* portThatCanTalkToMotors;
     CommandAgent* agent;
     if(settings.UseDeviceAdapter)
@@ -149,7 +148,7 @@ int main(int argc, char* argv[])
     portThatCanTalkToMotors->StartGathering();
 
     // Serial port setup is done.
-    led.FlashesPerPause = 3;
+    led.FlashesPerPause = 2;
 
     // Connect to the camera and attach the recorder and display window.
     FlirCamera* camera = ConnectToCamera(settings);    
@@ -184,7 +183,7 @@ int main(int argc, char* argv[])
     imageProcessor.CameraFramesToSkip = settings.CameraFramesToSkipMoving;
 
     // This will mark that we are just chilling.
-    led.FlashesPerPause = 4;
+    led.FlashesPerPause = 3;
 
     // Now here comes the actual processing.
     // For now, if it messes up, we will just display an error and 
@@ -211,7 +210,7 @@ int main(int argc, char* argv[])
                     // Decreae the super long pause.
                     led.PauseTime = 750000;
                     FinishOfficerTracking(motionController, camera, imageProcessor, settings, led);
-                    led.FlashesPerPause = 4;
+                    led.FlashesPerPause = 3;
                     break;
 
                 case SendKeyword:
