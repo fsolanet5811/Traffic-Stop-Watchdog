@@ -1,5 +1,7 @@
 #include "utilities.hpp"
 #include <iostream>
+#include <iomanip>
+#include <ctime>
 
 using namespace tsw::utilities;
 
@@ -19,7 +21,9 @@ void Log(string s, uint flags)
     _logKey.lock();
     if(flags & _logFlags)
     {
-        cout << s << endl;
+        time_t t = std::time(nullptr);
+        tm lt = *localtime(&t);
+        cout << put_time(&lt, "%m-%d-%Y %H:%M:%S") << " | " << s << endl;
     }
     _logKey.unlock();
 }

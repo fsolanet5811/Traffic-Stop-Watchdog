@@ -67,6 +67,9 @@ void CameraMotionController::GuideCameraTo(OfficerDirection location)
 {
     if(location.foundOfficer)
     {
+        // Add a reference to where we last saw the officer.
+        _lastSeen = location;
+
         // Reset the officer search state.
         _searchState = NotSearching;
 
@@ -82,7 +85,8 @@ void CameraMotionController::GuideCameraTo(OfficerDirection location)
         }
         else
         {
-            Log("Officer found, no movements necessary", Movements | Officers);
+            Log("Officer found, halting motors", Movements | Officers);
+            _motorController->SendAsyncRelativeMoveCommand(0, 0);
         }       
     }
     else
@@ -142,6 +146,9 @@ void CameraMotionController::CheckLastSeen()
 
         // Move so that the center of the frame is on the officer's predicted location.
         _motorController->SendSyncAbsoluteMoveCommand(horizontalAngle, verticalAngle);
+
+        // Reset where we last saw the officer.
+        _lastSeen.foundOfficer = false;
     }
     else
     {

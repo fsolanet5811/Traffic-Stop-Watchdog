@@ -181,6 +181,7 @@ int main(int argc, char* argv[])
 
     // This will handle displaying and recording when we get images.
     ImageProcessor imageProcessor(recorder, window, *camera, officerLocator, motionController, settings.ImagingConfig);
+    imageProcessor.CameraFramesToSkip = settings.CameraFramesToSkipMoving;
 
     // This will mark that we are just chilling.
     led.FlashesPerPause = 4;
