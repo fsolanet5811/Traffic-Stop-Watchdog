@@ -110,7 +110,7 @@ void ImageProcessor::OnLiveFeedImageReceived(LiveFeedCallbackArgs args)
         if(_config.recordFrames || _config.displayFrames)
         {
             Mat footageFrame = cvImage.clone();
-            DrawOfficerBox(bestBox, footageFrame, Scalar(255, 0, 0));
+            DrawOfficerBox(bestBox, &footageFrame, Scalar(255, 0, 0));
 
             if(_config.recordFrames)
             {
@@ -134,7 +134,7 @@ void ImageProcessor::OnLiveFeedImageReceived(LiveFeedCallbackArgs args)
             inRange(filtered, _officerLocator->MinHSV, _officerLocator->MaxHSV, threshold);
             Mat filteredColor;
             cvtColor(threshold, filteredColor, COLOR_GRAY2RGB);
-            DrawOfficerBox(bestBox, filteredColor, Scalar(255, 50, 50));
+            DrawOfficerBox(bestBox, &filteredColor, Scalar(255, 50, 50));
             _filterRecorder->AddFrame(filteredColor);
             Log("Frame added to filter recording buffer", Recording);
         }
@@ -146,7 +146,7 @@ bool ImageProcessor::IsProcessing()
     return _isProcessing;
 }
 
-void ImageProcessor::DrawOfficerBox(OfficerInferenceBox* officerBox, Mat cvImage, Scalar color)
+void ImageProcessor::DrawOfficerBox(OfficerInferenceBox* officerBox, Mat* cvImage, Scalar color)
 {
     // If there is a box and we want to record and/or display the image, we gotta draw the box.
     if(_config.showBoxes && officerBox)
@@ -156,7 +156,7 @@ void ImageProcessor::DrawOfficerBox(OfficerInferenceBox* officerBox, Mat cvImage
         Point bottomRight(officerBox->bottomRightX, officerBox->bottomRightY);
         
         // This is what puts it on the mat.
-        rectangle(cvImage, topLeft, bottomRight, color);
+        rectangle(*cvImage, topLeft, bottomRight, color);
     }
 }
 

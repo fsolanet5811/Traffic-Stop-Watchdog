@@ -9,6 +9,7 @@ MotorController::MotorController(DeviceSerialPort& commandPort, MotorConfig panC
     _commandPort = &commandPort;
     PanConfig = panConfig;
     TiltConfig = tiltConfig;
+    _headlightsState = 0;
 }
 
 void MotorController::SendAsyncRelativeMoveCommand(double horizontal, double vertical)
@@ -54,6 +55,28 @@ void MotorController::SendMoveCommand(CommandAction moveType, double horizontal,
     // Wait for the acknowledge (not the same as a synch response).
     // It is possible that the read response is not an ack but a success/failure from a previous move.
     ReadAcknowledge();
+}
+
+unsigned char MotorController::GetHeadlightsState()
+{
+    return _headlightsState;
+}
+
+void MotorController::SetHeadlightsState(unsigned char state)
+{
+    Log("Setting headlights state to " + to_string(state), LED);
+
+    // We do not have to bother sending it the command if the state won't change.
+    if(GetHeadlightsState() != state)
+    {
+        _commandPort->WriteToDevice(Motors, Headlights, state);
+        ReadAcknowledge();
+        Log("Headlights state set", LED);
+    }
+    else
+    {
+        Log("Headlights already in state " + to_string(state), LED);
+    }
 }
 
 void MotorController::Activate()

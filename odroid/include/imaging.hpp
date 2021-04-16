@@ -205,7 +205,7 @@ namespace tsw::imaging
         bool _isProcessing;
         ImageProcessingConfig _config;
         void OnLiveFeedImageReceived(LiveFeedCallbackArgs args);
-        void DrawOfficerBox(OfficerInferenceBox* box, Mat cvImage, Scalar color);
+        void DrawOfficerBox(OfficerInferenceBox* box, Mat* cvImage, Scalar color);
         Mat MatFromImage(ImagePtr image, OfficerInferenceBox* officerBox);
     };
 }

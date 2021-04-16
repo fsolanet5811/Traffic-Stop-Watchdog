@@ -14,6 +14,9 @@
 #define FLASH_ON_TIME 200000
 #define FLASH_OFF_TIME 200000
 
+#define HEADLIGHTS_OFFICER_VISIBLE 0x01
+#define HEADLIGHTS_MOVING_TO_OFFICER 0x02
+
 using namespace Spinnaker;
 using namespace std;
 using namespace rapidjson;
@@ -64,6 +67,7 @@ namespace tsw::io
         Activate = 9,
         Deactivate = 10,
         SetSpeeds = 11,
+        Headlights = 12,
         Acknowledge = 15
     };
 
@@ -78,6 +82,7 @@ namespace tsw::io
         DeviceMessage ReadFromDevice(Device device);
         DeviceMessage ReadFromDevice(Device device, unsigned char header);
         void WriteToDevice(Device device, CommandAction command, vector<unsigned char> data);
+        void WriteToDevice(Device device, CommandAction command, unsigned char data);
         void WriteToDevice(Device device, CommandAction command);
         bool TryReadFromDevice(Device device, DeviceMessage* readMessage);
         ~DeviceSerialPort();
@@ -102,12 +107,15 @@ namespace tsw::io
         void SendAsyncRelativeMoveCommand(double horizontal, double vertical);
         void SendSyncAbsoluteMoveCommand(double horizontal, double vertical);
         void SendAsyncAbsoluteMoveCommand(double horizontal, double vertical);
+        unsigned char GetHeadlightsState();
+        void SetHeadlightsState(unsigned char state);
         void Activate();
         void Deactivate();
         void SetSpeeds(ByteVector2 speeds);
         bool TryReadMessage(DeviceMessage* message);
 
     private:
+        unsigned char _headlightsState;
         DeviceSerialPort* _commandPort;
         void SendMoveCommand(CommandAction moveType, double horizontal, double vertical, string moveName);
         void ReadAcknowledge();

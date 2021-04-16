@@ -47,6 +47,9 @@ void CameraMotionController::InitializeGuidance()
         // Set the speeds.
         _motorController->SetSpeeds(MotorSpeeds);
 
+        // Turn off the leds.
+        _motorController->SetHeadlightsState(0);
+
         _isGuidanceInitialized = true;
     }
 }
@@ -57,6 +60,9 @@ void CameraMotionController::UninitializeGuidance()
     {
         // Deactivate the motors.
         _motorController->Deactivate();
+
+        // Turn off the leds to save some juice.
+        _motorController->SetHeadlightsState(0);
 
         _isGuidanceInitialized = false;
         ResetSearchState();
@@ -73,6 +79,10 @@ void CameraMotionController::GuideCameraTo(OfficerDirection location)
         // Reset the officer search state.
         _searchState = NotSearching;
 
+        // Set the headlights to reflect that we see the officer.
+        // We may also have to say that we are moving, so hold off on the send.
+        unsigned char desiredHeadlights = HEADLIGHTS_OFFICER_VISIBLE;
+
         // We don't always have to move if we found the officer.
         if(location.shouldMove)
         {
@@ -80,6 +90,7 @@ void CameraMotionController::GuideCameraTo(OfficerDirection location)
             // Positive angles point to the left/down, so we gotta negate these guys.
             double horizontalRotate = location.movement.x * HorizontalFov / 2;
             double verticalRotate = -1 * location.movement.y * VerticalFov / 2;
+            desiredHeadlights |= HEADLIGHTS_MOVING_TO_OFFICER;
 
             _motorController->SendAsyncRelativeMoveCommand(horizontalRotate, verticalRotate);
         }
@@ -87,7 +98,9 @@ void CameraMotionController::GuideCameraTo(OfficerDirection location)
         {
             Log("Officer found, halting motors", Movements | Officers);
             _motorController->SendAsyncRelativeMoveCommand(0, 0);
-        }       
+        }
+
+        _motorController->SetHeadlightsState(desiredHeadlights);       
     }
     else
     {
@@ -146,6 +159,7 @@ void CameraMotionController::CheckLastSeen()
 
         // Move so that the center of the frame is on the officer's predicted location.
         _motorController->SendSyncRelativeMoveCommand(horizontalAngle, verticalAngle);
+        _motorController->SetHeadlightsState(HEADLIGHTS_MOVING_TO_OFFICER);
 
         // Reset where we last saw the officer.
         _lastSeen.foundOfficer = false;
@@ -185,10 +199,12 @@ void CameraMotionController::MoveToMin()
 {
     _movingTowardsMin = true;
     _motorController->SendSyncAbsoluteMoveCommand(AngleXBounds.min, HomeAngles.y);
+    _motorController->SetHeadlightsState(HEADLIGHTS_MOVING_TO_OFFICER);
 }
 
 void CameraMotionController::MoveToMax()
 {
     _movingTowardsMin = false;
     _motorController->SendSyncAbsoluteMoveCommand(AngleXBounds.max, HomeAngles.y);
+    _motorController->SetHeadlightsState(HEADLIGHTS_MOVING_TO_OFFICER);
 }

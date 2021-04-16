@@ -106,7 +106,7 @@ DeviceMessage DeviceSerialPort::ReadFromDevice(Device device)
         }
 
         // Wait a bit before reading again.
-        usleep(100000);
+        usleep(10000);
     }
 }
 
@@ -141,6 +141,13 @@ void DeviceSerialPort::WriteToDevice(Device device, CommandAction command, vecto
     unsigned char header = ((unsigned char)device << 7) | data.size() << 4 | command;
     data.insert(data.begin(), header);
     WriteToDevice(data);
+}
+
+void DeviceSerialPort::WriteToDevice(Device device, CommandAction action, unsigned char data)
+{
+    vector<unsigned char> dataVec(1);
+    dataVec[0] = data;
+    WriteToDevice(device, action, dataVec);
 }
 
 void DeviceSerialPort::WriteToDevice(Device device, CommandAction action)
