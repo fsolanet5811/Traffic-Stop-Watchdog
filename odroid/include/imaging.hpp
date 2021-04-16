@@ -203,6 +203,7 @@ namespace tsw::imaging
         CameraMotionController* _motionController;
         uint _livefeedCallbackKey;
         bool _isProcessing;
+        unsigned int _processNum;
         ImageProcessingConfig _config;
         void OnLiveFeedImageReceived(LiveFeedCallbackArgs args);
         void DrawOfficerBox(OfficerInferenceBox* box, Mat* cvImage, Scalar color);

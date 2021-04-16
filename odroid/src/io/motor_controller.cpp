@@ -71,6 +71,7 @@ void MotorController::SetHeadlightsState(unsigned char state)
     {
         _commandPort->WriteToDevice(Motors, Headlights, state);
         ReadAcknowledge();
+        _headlightsState = state;
         Log("Headlights state set", LED);
     }
     else

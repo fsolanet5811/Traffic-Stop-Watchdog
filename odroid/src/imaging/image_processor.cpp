@@ -12,6 +12,7 @@ ImageProcessor::ImageProcessor(DisplayWindow& window, FlirCamera& camera, SmartO
     double fps = camera.GetFrameRate();
     _footageRecorder = new Recorder(frameSize, fps);
     _filterRecorder = new Recorder(frameSize, fps);
+    _processNum = 0;
 
     _window = &window;
     _camera = &camera;
@@ -25,18 +26,20 @@ void ImageProcessor::StartProcessing()
 {
     if(!IsProcessing())
     {
+        _processNum++;
+
         if(_config.recordFrames || _config.displayFrames || _config.moveCamera || _config.recordFilter)
         {
             _livefeedCallbackKey = _camera->RegisterLiveFeedCallback(bind(&ImageProcessor::OnLiveFeedImageReceived, this, placeholders::_1));
 
             if(_config.recordFrames)
             {
-                _footageRecorder->StartRecording("1_OfficerFootage.avi");
+                _footageRecorder->StartRecording(to_string(_processNum) + "_OfficerFootage.avi");
             }
 
             if(_config.recordFilter)
             {
-                _filterRecorder->StartRecording("1_OfficerFilter.avi");
+                _filterRecorder->StartRecording(to_string(_processNum) + "_OfficerFilter.avi");
             }
 
             if(_config.displayFrames)
