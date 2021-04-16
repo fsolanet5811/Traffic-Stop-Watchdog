@@ -2,6 +2,8 @@
 #include <iostream>
 #include <iomanip>
 #include <ctime>
+#include <chrono>
+#include <sys/time.h>
 
 using namespace tsw::utilities;
 
@@ -21,9 +23,14 @@ void Log(string s, uint flags)
     _logKey.lock();
     if(flags & _logFlags)
     {
-        time_t t = std::time(nullptr);
-        tm lt = *localtime(&t);
-        cout << put_time(&lt, "%m-%d-%Y %H:%M:%S") << " | " << s << endl;
+        // This is a lot of bs to calculate the current time in microseconds.
+        timeval tAbs;
+        gettimeofday(&tAbs, nullptr);
+        tm lt = *localtime(&tAbs.tv_sec);
+        stringstream usecondsStr;
+        usecondsStr << setfill('0') << setw(6) << tAbs.tv_usec;
+
+        cout << put_time(&lt, "%m-%d-%Y %H:%M:%S.") << usecondsStr.str() << " | " << s << endl;
     }
     _logKey.unlock();
 }
