@@ -11,6 +11,7 @@ namespace tsw::common
     {
         bool displayFrames;
         bool recordFrames;
+        bool recordFilter;
         bool showBoxes;
         bool moveCamera;
     };

@@ -187,22 +187,25 @@ namespace tsw::imaging
     class ImageProcessor
     {
     public:
-        ImageProcessor(Recorder& recorder, DisplayWindow& window, FlirCamera& camera, OfficerLocator& officerLocator, CameraMotionController& motionController, ImageProcessingConfig config);
+        ImageProcessor(DisplayWindow& window, FlirCamera& camera, SmartOfficerLocator& officerLocator, CameraMotionController& motionController, ImageProcessingConfig config);
         uint CameraFramesToSkip;
         void StartProcessing();
         void StopProcessing();
         bool IsProcessing();
+        ~ImageProcessor();
 
     private:
-        Recorder* _recorder;
+        Recorder* _footageRecorder;
+        Recorder* _filterRecorder;
         DisplayWindow* _window;
         FlirCamera* _camera;
-        OfficerLocator* _officerLocator;
+        SmartOfficerLocator* _officerLocator;
         CameraMotionController* _motionController;
         uint _livefeedCallbackKey;
         bool _isProcessing;
         ImageProcessingConfig _config;
         void OnLiveFeedImageReceived(LiveFeedCallbackArgs args);
+        void DrawOfficerBox(OfficerInferenceBox* box, Mat cvImage, Scalar color);
         Mat MatFromImage(ImagePtr image, OfficerInferenceBox* officerBox);
     };
 }

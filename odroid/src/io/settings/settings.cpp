@@ -92,6 +92,7 @@ ImageProcessingConfig Settings::ReadImageProcessingConfig(Document& doc, string 
     config.recordFrames = doc[imageProcessingConfigName.c_str()]["RecordFrames"].GetBool();
     config.showBoxes = doc[imageProcessingConfigName.c_str()]["ShowBoxes"].GetBool();
     config.moveCamera = doc[imageProcessingConfigName.c_str()]["MoveCamera"].GetBool();
+    config.recordFilter = doc[imageProcessingConfigName.c_str()]["RecordFilter"].GetBool();
 
     return config;
 }

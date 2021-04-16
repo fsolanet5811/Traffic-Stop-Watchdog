@@ -179,7 +179,7 @@ int main(int argc, char* argv[])
     motionController.CalibrateFOV(settings.CameraFrameWidth, settings.CameraFrameHeight);
 
     // This will handle displaying and recording when we get images.
-    ImageProcessor imageProcessor(recorder, window, *camera, officerLocator, motionController, settings.ImagingConfig);
+    ImageProcessor imageProcessor(window, *camera, officerLocator, motionController, settings.ImagingConfig);
     imageProcessor.CameraFramesToSkip = settings.CameraFramesToSkipMoving;
 
     // This will mark that we are just chilling.

@@ -5,9 +5,14 @@
 using namespace tsw::imaging;
 using namespace tsw::io::settings;
 
-ImageProcessor::ImageProcessor(Recorder& recorder, DisplayWindow& window, FlirCamera& camera, OfficerLocator& officerLocator, CameraMotionController& motionController, ImageProcessingConfig config)
+ImageProcessor::ImageProcessor(DisplayWindow& window, FlirCamera& camera, SmartOfficerLocator& officerLocator, CameraMotionController& motionController, ImageProcessingConfig config)
 {
-    _recorder = &recorder;
+    // We have two recorders. One for the footage, and one for the filter.
+    Size frameSize(camera.GetFrameWidth(), camera.GetFrameHeight());
+    double fps = camera.GetFrameRate();
+    _footageRecorder = new Recorder(frameSize, fps);
+    _filterRecorder = new Recorder(frameSize, fps);
+
     _window = &window;
     _camera = &camera;
     _officerLocator = &officerLocator;
@@ -20,13 +25,18 @@ void ImageProcessor::StartProcessing()
 {
     if(!IsProcessing())
     {
-        if(_config.recordFrames || _config.displayFrames || _config.moveCamera)
+        if(_config.recordFrames || _config.displayFrames || _config.moveCamera || _config.recordFilter)
         {
             _livefeedCallbackKey = _camera->RegisterLiveFeedCallback(bind(&ImageProcessor::OnLiveFeedImageReceived, this, placeholders::_1));
 
             if(_config.recordFrames)
             {
-                _recorder->StartRecording("1_OfficerFootage.avi");
+                _footageRecorder->StartRecording("1_OfficerFootage.avi");
+            }
+
+            if(_config.recordFilter)
+            {
+                _filterRecorder->StartRecording("1_OfficerFilter.avi");
             }
 
             if(_config.displayFrames)
@@ -49,13 +59,18 @@ void ImageProcessor::StopProcessing()
 {
     if(IsProcessing())
     {
-        if(_config.recordFrames || _config.displayFrames || _config.moveCamera)
+        if(_config.recordFrames || _config.displayFrames || _config.moveCamera || _config.recordFilter)
         {
             _camera->UnregisterLiveFeedCallback(_livefeedCallbackKey);
 
             if(_config.recordFrames)
             {
-                _recorder->StopRecording();
+                _footageRecorder->StopRecording();
+            }
+
+            if(_config.recordFilter)
+            {
+                _filterRecorder->StopRecording();
             }
 
             if(_config.displayFrames)
@@ -87,32 +102,41 @@ void ImageProcessor::OnLiveFeedImageReceived(LiveFeedCallbackArgs args)
         _motionController->GuideCameraTo(dir);
     }
 
-    if(_config.recordFrames || _config.displayFrames)
+    if(_config.recordFrames || _config.displayFrames || _config.recordFilter)
     {
         // Make an opencv image out of the FLIR image.
         Mat cvImage = MatFromImage(args.image, bestBox);
 
-        // If there is a box and we want to record and/or display the image, we gotta draw the box.
-        if(bestBox)
+        if(_config.recordFrames || _config.displayFrames)
         {
-            // Create the rectange in cv language.
-            Point topLeft(bestBox->topLeftX, bestBox->topLeftY);
-            Point bottomRight(bestBox->bottomRightX, bestBox->bottomRightY);
-            
-            // This is what puts it on the mat.
-            rectangle(cvImage, topLeft, bottomRight, Scalar(255, 0, 0));
+            Mat footageFrame = cvImage.clone();
+            DrawOfficerBox(bestBox, footageFrame, Scalar(255, 0, 0));
+
+            if(_config.recordFrames)
+            {
+                Log("Adding frame # " + to_string(args.imageIndex) + " to footage recording buffer", Recording);
+                _footageRecorder->AddFrame(footageFrame);
+                Log("Frame added to footage recording buffer", Recording);
+            }
+
+            if(_config.displayFrames)
+            {
+                _window->Update(footageFrame.clone());
+            }
         }
 
-        if(_config.recordFrames)
+        if(_config.recordFilter)
         {
-            Log("Adding frame # " + to_string(args.imageIndex) + " to recording buffer", Recording);
-            _recorder->AddFrame(cvImage.clone());
-            Log("Frame added to recording buffer", Recording);
-        }
-
-        if(_config.displayFrames)
-        {
-            _window->Update(cvImage.clone());
+            Log("Adding frame # " + to_string(args.imageIndex) + " to filter recording buffer", Recording);
+            Mat filtered;
+            cvtColor(cvImage, filtered, COLOR_BGR2HSV);
+            Mat threshold;
+            inRange(filtered, _officerLocator->MinHSV, _officerLocator->MaxHSV, threshold);
+            Mat filteredColor;
+            cvtColor(threshold, filteredColor, COLOR_GRAY2RGB);
+            DrawOfficerBox(bestBox, filteredColor, Scalar(255, 50, 50));
+            _filterRecorder->AddFrame(filteredColor);
+            Log("Frame added to filter recording buffer", Recording);
         }
     }
 }
@@ -120,6 +144,20 @@ void ImageProcessor::OnLiveFeedImageReceived(LiveFeedCallbackArgs args)
 bool ImageProcessor::IsProcessing()
 {
     return _isProcessing;
+}
+
+void ImageProcessor::DrawOfficerBox(OfficerInferenceBox* officerBox, Mat cvImage, Scalar color)
+{
+    // If there is a box and we want to record and/or display the image, we gotta draw the box.
+    if(_config.showBoxes && officerBox)
+    {
+        // Create the rectange in cv language.
+        Point topLeft(officerBox->topLeftX, officerBox->topLeftY);
+        Point bottomRight(officerBox->bottomRightX, officerBox->bottomRightY);
+        
+        // This is what puts it on the mat.
+        rectangle(cvImage, topLeft, bottomRight, color);
+    }
 }
 
 Mat ImageProcessor::MatFromImage(ImagePtr image, OfficerInferenceBox* officerBox)
@@ -130,16 +168,11 @@ Mat ImageProcessor::MatFromImage(ImagePtr image, OfficerInferenceBox* officerBox
 
     // Opencv interperets the data as bgr instead of rgb, so we gotta convert it.
     cvtColor(m, m, COLOR_BGR2RGB);
-
-    if(_config.showBoxes && officerBox)
-    {
-        // Create the rectange in cv language.
-        Point topLeft(officerBox->topLeftX, officerBox->topLeftY);
-        Point bottomRight(officerBox->bottomRightX, officerBox->bottomRightY);
-        
-        // This is what puts it on the mat.
-        rectangle(m, topLeft, bottomRight, Scalar(255, 0, 0));
-    }
-
     return m; 
+}
+
+ImageProcessor::~ImageProcessor()
+{
+    delete _footageRecorder;
+    delete _filterRecorder;
 }
