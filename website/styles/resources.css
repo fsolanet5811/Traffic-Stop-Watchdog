@@ -1,0 +1,9 @@
+.resourceCard {
+    width: 400px;
+    text-align: center;
+}
+
+.resourceLink {
+    text-decoration: none;
+    color: black;
+}

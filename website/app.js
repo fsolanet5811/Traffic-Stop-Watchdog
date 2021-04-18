@@ -5,22 +5,22 @@ const home = {
     controller: 'homeController'
 };
 
-const about = {
-    templateUrl: 'views/aboutView.html',
-    controller: 'aboutController'
+const resources = {
+    templateUrl: 'views/resourcesView.html',
+    controller: 'resourcesController'
 }
 
-const design = {
-    templateUrl: 'views/designView.html',
-    controller: 'designController'
+const diagrams = {
+    templateUrl: 'views/diagramsView.html',
+    controller: 'diagramsController'
 }
 
 app.config(function ($routeProvider, $locationProvider) {
     $locationProvider.hashPrefix('');
     $routeProvider.when('/', home)
     .when('/home', home)
-    .when('/about', about)
-    .when('/design', design)
+    .when('/resources', resources)
+    .when('/diagrams', diagrams)
     .otherwise({
         redirectTo: '/'
     });
