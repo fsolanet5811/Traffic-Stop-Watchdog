@@ -1,0 +1,18 @@
+.routeLabel {
+    height: 100%;
+}
+
+.routeLabel:hover {
+    background: rgba(3, 211, 252, 0.3);
+}
+
+.routeTextContainer {
+    margin: 0px 20px 0px 20px;
+}
+
+.routeText {
+    text-decoration: none;
+    color: #000000;
+    padding: 0px, 20px, 0px, 20px;
+    display: block;
+}

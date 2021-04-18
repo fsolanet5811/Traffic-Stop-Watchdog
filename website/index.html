@@ -1,0 +1,51 @@
+﻿<!DOCTYPE html>
+<html ng-app="app" ng-controller="rootController">
+<head>
+    <meta charset="utf-8" />
+    <title>Traffic Stop Watchdog</title>
+    <link rel="icon" href="/images/favicon.ico"/>
+
+    <!-- Angular -->
+    <script src="lib/angular.js"></script>
+    <script src="lib/angular-route.js"></script>
+    <script src="lib/angular-aria.js"></script>
+    <script src="lib/angular-material.js"></script>
+    <script src="lib/angular-animate.js"></script>
+
+    <script src="app.js"></script>
+
+    <!-- Controllers -->
+    <script src="controllers/rootController.js"></script>
+    <script src="controllers/homeController.js"></script>
+    <script src="controllers/designController.js"></script>
+    <script src="controllers/aboutController.js"></script>
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="styles/angular-material.css" />
+    <link rel="stylesheet" href="styles/common.css"/>
+    <link rel="stylesheet" href="styles/header.css"/>
+    <link rel="stylesheet" href="styles/home.css"/>
+    <style>
+        body {
+            height: 100%;
+            width: 100%;
+            padding: 80px 0px 0px 0px;
+            position: relative;
+            background-image: url('images/background.png');
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            background-size: 100% 100%;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 20px;
+            box-sizing: border-box;
+        }
+    </style>
+
+</head>
+<body>
+    <div style="height: 80px; position: absolute; top: 0; width: 100%;">
+        <ng-include src="'views/headerView.html'" />
+    </div>
+    <div ng-view style="display: flex; height: 100%;"/>
+</body>
+</html>
